@@ -1,0 +1,28 @@
+// To compile the material, run the following command upon opening the terminal:
+// > matc -p <platform> -a opengl -o <out> src/commonMain/resources/materials/dynamic_color.mat
+// Note on options:
+// -p: desktop | mobile | all
+// -o: src/androidMain/assets/materials/dynamic_color.filamat | src/jsMain/resources/materials/dynamic_color.filamat
+
+
+material {
+    name : dynamic_color,
+
+    parameters : [
+        {
+            type : float3,
+            name : baseColor
+        }
+    ],
+
+    // this material disables all lighting
+    shadingModel : unlit,
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+
+        material.baseColor.rgb = materialParams.baseColor;
+    }
+}

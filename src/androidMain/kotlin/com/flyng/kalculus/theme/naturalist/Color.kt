@@ -1,0 +1,131 @@
+package com.flyng.kalculus.theme.naturalist
+
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
+
+internal val naturalistSeed = Color(0xFF003913)
+
+private val naturalist_light_primary = Color(0xFF1A6C31)
+private val naturalist_light_onPrimary = Color(0xFFFFFFFF)
+private val naturalist_light_primaryContainer = Color(0xFFA3F5AA)
+private val naturalist_light_onPrimaryContainer = Color(0xFF002108)
+private val naturalist_light_secondary = Color(0xFF516351)
+private val naturalist_light_onSecondary = Color(0xFFFFFFFF)
+private val naturalist_light_secondaryContainer = Color(0xFFD4E8D1)
+private val naturalist_light_onSecondaryContainer = Color(0xFF0F1F11)
+private val naturalist_light_tertiary = Color(0xFF865300)
+private val naturalist_light_onTertiary = Color(0xFFFFFFFF)
+private val naturalist_light_tertiaryContainer = Color(0xFFFFDDB8)
+private val naturalist_light_onTertiaryContainer = Color(0xFF2B1700)
+private val naturalist_light_error = Color(0xFFBA1A1A)
+private val naturalist_light_errorContainer = Color(0xFFFFDAD6)
+private val naturalist_light_onError = Color(0xFFFFFFFF)
+private val naturalist_light_onErrorContainer = Color(0xFF410002)
+private val naturalist_light_background = Color(0xFFFCFDF7)
+private val naturalist_light_onBackground = Color(0xFF1A1C19)
+private val naturalist_light_surface = Color(0xFFFCFDF7)
+private val naturalist_light_onSurface = Color(0xFF1A1C19)
+private val naturalist_light_surfaceVariant = Color(0xFFDDE5D9)
+private val naturalist_light_onSurfaceVariant = Color(0xFF424940)
+private val naturalist_light_outline = Color(0xFF727970)
+private val naturalist_light_inverseOnSurface = Color(0xFFF0F1EB)
+private val naturalist_light_inverseSurface = Color(0xFF2E312D)
+private val naturalist_light_inversePrimary = Color(0xFF88D990)
+private val naturalist_light_surfaceTint = Color(0xFF1A6C31)
+private val naturalist_light_outlineVariant = Color(0xFFC1C9BE)
+private val naturalist_light_scrim = Color(0xFF000000)
+
+private val naturalist_dark_primary = Color(0xFF88D990)
+private val naturalist_dark_onPrimary = Color(0xFF003913)
+private val naturalist_dark_primaryContainer = Color(0xFF00531F)
+private val naturalist_dark_onPrimaryContainer = Color(0xFFA3F5AA)
+private val naturalist_dark_secondary = Color(0xFFB8CCB5)
+private val naturalist_dark_onSecondary = Color(0xFF243425)
+private val naturalist_dark_secondaryContainer = Color(0xFF3A4B3A)
+private val naturalist_dark_onSecondaryContainer = Color(0xFFD4E8D1)
+private val naturalist_dark_tertiary = Color(0xFFFFB960)
+private val naturalist_dark_onTertiary = Color(0xFF472A00)
+private val naturalist_dark_tertiaryContainer = Color(0xFF653E00)
+private val naturalist_dark_onTertiaryContainer = Color(0xFFFFDDB8)
+private val naturalist_dark_error = Color(0xFFFFB4AB)
+private val naturalist_dark_errorContainer = Color(0xFF93000A)
+private val naturalist_dark_onError = Color(0xFF690005)
+private val naturalist_dark_onErrorContainer = Color(0xFFFFDAD6)
+private val naturalist_dark_background = Color(0xFF1A1C19)
+private val naturalist_dark_onBackground = Color(0xFFE2E3DD)
+private val naturalist_dark_surface = Color(0xFF1A1C19)
+private val naturalist_dark_onSurface = Color(0xFFE2E3DD)
+private val naturalist_dark_surfaceVariant = Color(0xFF424940)
+private val naturalist_dark_onSurfaceVariant = Color(0xFFC1C9BE)
+private val naturalist_dark_outline = Color(0xFF8B9389)
+private val naturalist_dark_inverseOnSurface = Color(0xFF1A1C19)
+private val naturalist_dark_inverseSurface = Color(0xFFE2E3DD)
+private val naturalist_dark_inversePrimary = Color(0xFF1A6C31)
+private val naturalist_dark_surfaceTint = Color(0xFF88D990)
+private val naturalist_dark_outlineVariant = Color(0xFF424940)
+private val naturalist_dark_scrim = Color(0xFF000000)
+
+val naturalistLightColors = lightColorScheme(
+    primary = naturalist_light_primary,
+    onPrimary = naturalist_light_onPrimary,
+    primaryContainer = naturalist_light_primaryContainer,
+    onPrimaryContainer = naturalist_light_onPrimaryContainer,
+    secondary = naturalist_light_secondary,
+    onSecondary = naturalist_light_onSecondary,
+    secondaryContainer = naturalist_light_secondaryContainer,
+    onSecondaryContainer = naturalist_light_onSecondaryContainer,
+    tertiary = naturalist_light_tertiary,
+    onTertiary = naturalist_light_onTertiary,
+    tertiaryContainer = naturalist_light_tertiaryContainer,
+    onTertiaryContainer = naturalist_light_onTertiaryContainer,
+    error = naturalist_light_error,
+    errorContainer = naturalist_light_errorContainer,
+    onError = naturalist_light_onError,
+    onErrorContainer = naturalist_light_onErrorContainer,
+    background = naturalist_light_background,
+    onBackground = naturalist_light_onBackground,
+    surface = naturalist_light_surface,
+    onSurface = naturalist_light_onSurface,
+    surfaceVariant = naturalist_light_surfaceVariant,
+    onSurfaceVariant = naturalist_light_onSurfaceVariant,
+    outline = naturalist_light_outline,
+    outlineVariant = naturalist_light_outlineVariant,
+    inverseOnSurface = naturalist_light_inverseOnSurface,
+    inverseSurface = naturalist_light_inverseSurface,
+    inversePrimary = naturalist_light_inversePrimary,
+    surfaceTint = naturalist_light_surfaceTint,
+    scrim = naturalist_light_scrim
+)
+
+val naturalistDarkColors = darkColorScheme(
+    primary = naturalist_dark_primary,
+    onPrimary = naturalist_dark_onPrimary,
+    primaryContainer = naturalist_dark_primaryContainer,
+    onPrimaryContainer = naturalist_dark_onPrimaryContainer,
+    secondary = naturalist_dark_secondary,
+    onSecondary = naturalist_dark_onSecondary,
+    secondaryContainer = naturalist_dark_secondaryContainer,
+    onSecondaryContainer = naturalist_dark_onSecondaryContainer,
+    tertiary = naturalist_dark_tertiary,
+    onTertiary = naturalist_dark_onTertiary,
+    tertiaryContainer = naturalist_dark_tertiaryContainer,
+    onTertiaryContainer = naturalist_dark_onTertiaryContainer,
+    error = naturalist_dark_error,
+    errorContainer = naturalist_dark_errorContainer,
+    onError = naturalist_dark_onError,
+    onErrorContainer = naturalist_dark_onErrorContainer,
+    background = naturalist_dark_background,
+    onBackground = naturalist_dark_onBackground,
+    surface = naturalist_dark_surface,
+    onSurface = naturalist_dark_onSurface,
+    surfaceVariant = naturalist_dark_surfaceVariant,
+    onSurfaceVariant = naturalist_dark_onSurfaceVariant,
+    outline = naturalist_dark_outline,
+    outlineVariant = naturalist_dark_outlineVariant,
+    inverseOnSurface = naturalist_dark_inverseOnSurface,
+    inverseSurface = naturalist_dark_inverseSurface,
+    inversePrimary = naturalist_dark_inversePrimary,
+    surfaceTint = naturalist_dark_surfaceTint,
+    scrim = naturalist_dark_scrim
+)

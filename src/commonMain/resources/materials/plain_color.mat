@@ -1,0 +1,28 @@
+// to compile the material, run the following command upon opening the terminal
+// matc -p <platform> -a opengl -o <out> src/commonMain/resources/materials/plain_color.mat
+// note on options:
+// -p: desktop | mobile | all
+// -o: src/androidMain/assets/materials/plain_color.filamat | src/jsMain/resources/materials/plain_color.filamat
+
+
+material {
+    name : plain_color,
+
+    // we need a color (RGBA)
+    requires : [
+        color
+    ],
+
+    // this material disables all lighting
+    shadingModel : unlit,
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+
+        // set the material's color to the color interpolated from
+        // the model's vertices
+        material.baseColor = getColor();
+    }
+}
