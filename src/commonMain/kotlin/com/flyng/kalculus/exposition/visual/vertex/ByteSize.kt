@@ -1,4 +1,4 @@
-package com.flyng.kalculus.visual.vertex
+package com.flyng.kalculus.exposition.visual.vertex
 
 object ByteSize {
     const val INT = 4

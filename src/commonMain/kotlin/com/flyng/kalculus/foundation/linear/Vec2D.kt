@@ -1,4 +1,4 @@
-package com.flyng.kalculus.foundation.geometry
+package com.flyng.kalculus.foundation.linear
 
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -28,7 +28,7 @@ internal open class Vec2D(x: Number, y: Number) {
 
     override fun equals(other: Any?): Boolean {
         return if (other is Vec2D) {
-            x == other.x && y == other.y
+            x.round() == other.x.round() && y.round() == other.y.round()
         } else {
             super.equals(other)
         }
@@ -56,23 +56,28 @@ internal open class Vec2D(x: Number, y: Number) {
     open fun scale(scalar: Number) = this.apply {
         when (scalar) {
             is Short -> {
-                x *= scalar; y *= scalar
+                x *= scalar
+                y *= scalar
             }
 
             is Int -> {
-                x *= scalar; y *= scalar
+                x *= scalar
+                y *= scalar
             }
 
             is Long -> {
-                x *= scalar; y *= scalar
+                x *= scalar
+                y *= scalar
             }
 
             is Float -> {
-                x *= scalar; y *= scalar
+                x *= scalar
+                y *= scalar
             }
 
             is Double -> {
-                x *= scalar.toFloat(); y *= scalar.toFloat()
+                x *= scalar.toFloat()
+                y *= scalar.toFloat()
             }
 
             else -> throw IllegalArgumentException(
@@ -98,8 +103,8 @@ internal open class Vec2D(x: Number, y: Number) {
     open fun rotate(radian: Double) = rotate(radian.toFloat())
 
     /**
-     * Clones this vector. This will be useful when you want to preserve the initial vector after applying a sequence of
-     * vector transformations on it.
+     * Clones this vector. This will be useful when you want to preserve the initial vector after applying a sequence
+     * of vector transformations on it.
      */
     fun copy() = Vec2D(this.x, this.y)
 }

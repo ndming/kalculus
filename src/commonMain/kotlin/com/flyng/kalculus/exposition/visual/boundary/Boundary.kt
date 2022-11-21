@@ -1,4 +1,4 @@
-package com.flyng.kalculus.visual.boundary
+package com.flyng.kalculus.exposition.visual.boundary
 
 data class Boundary(
     val centerX: Float,

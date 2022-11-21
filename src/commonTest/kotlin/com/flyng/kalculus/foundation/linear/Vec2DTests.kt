@@ -1,6 +1,7 @@
-package com.flyng.kalculus.foundation.geometry
+package com.flyng.kalculus.foundation.linear
 
 import kotlin.math.PI
+import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,9 +22,10 @@ class Vec2DTests {
     companion object {
         private const val SCALAR_1 = 5.5f
         private const val SCALAR_2 = -7.0
-        private const val PI_OVER_3 = PI.toFloat() / 3
-        private const val PI_OVER_2 = PI.toFloat() / 2
-        private const val TOLERANCE = 0.001f
+        private const val PI_OVER_3 = PI / 3
+        private const val PI_OVER_2 = PI / 2
+        private const val TWO_PI = 2 * PI
+        private val TOLERANCE = 1 / 10.0f.pow(Precision.DEFAULT)
     }
 
     @Test
@@ -66,23 +68,21 @@ class Vec2DTests {
 
     @Test
     fun vectorTranslation() {
-        assertEquals(Vec2D(2, 0), vec45.translate(vec135), "Translate $vec45 by $vec135")
+        assertEquals(Vec2D(0, 2), vec45.copy().translate(vec135), "Translate $vec45 by $vec135")
     }
 
     @Test
     fun vectorScaling() {
-        assertEquals(Vec2D(SCALAR_1, SCALAR_1), vec45.scale(SCALAR_1), "Scale $vec45 by $SCALAR_1")
-        assertEquals(Vec2D(-SCALAR_2, SCALAR_2), vec135.scale(SCALAR_2), "Scale $vec135 by $SCALAR_2")
-    }
-
-    @Test
-    fun vectorReflection() {
-
+        assertEquals(Vec2D(SCALAR_1, SCALAR_1), vec45.copy().scale(SCALAR_1), "Scale $vec45 by $SCALAR_1")
+        assertEquals(Vec2D(-SCALAR_2, SCALAR_2), vec135.copy().scale(SCALAR_2), "Scale $vec135 by $SCALAR_2")
     }
 
     @Test
     fun vectorRotation() {
         assertEquals(JHat2D, IHat2D.rotate(PI_OVER_2), "Rotate $IHat2D by $PI_OVER_2 radian")
         assertEquals(-JHat2D, IHat2D.rotate(-PI_OVER_2), "Rotate $IHat2D by ${-PI_OVER_2} radian")
+        assertEquals(vec120, vec60.copy().rotate(PI_OVER_3), "Rotate $vec60 by $PI_OVER_3 radian")
+        assertEquals(vec120, vec300.copy().rotate(-PI), "Rotate $vec300 by ${-PI_OVER_2} radian")
+        assertEquals(vec240, vec240.copy().rotate(TWO_PI), "Rotate $vec240 by $TWO_PI radian")
     }
 }

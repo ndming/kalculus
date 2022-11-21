@@ -1,4 +1,4 @@
-package com.flyng.kalculus.visual.vertex
+package com.flyng.kalculus.exposition.visual.vertex
 
 sealed class VertexAttribute(val size: Int, val normalized: Boolean)
 
