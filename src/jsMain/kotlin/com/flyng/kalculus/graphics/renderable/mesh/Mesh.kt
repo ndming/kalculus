@@ -1,4 +1,4 @@
-package com.flyng.kalculus.renderable.mesh
+package com.flyng.kalculus.graphics.renderable.mesh
 
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array

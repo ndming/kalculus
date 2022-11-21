@@ -1,4 +1,4 @@
-package com.flyng.kalculus.renderable.mesh
+package com.flyng.kalculus.graphics.renderable.mesh
 
 import com.google.android.filament.*
 

@@ -3,7 +3,7 @@ package com.flyng.kalculus.core.manager
 import android.util.Log
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import com.flyng.kalculus.BuildConfig
-import com.flyng.kalculus.renderable.Renderable
+import com.flyng.kalculus.graphics.renderable.Renderable
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.google.android.filament.Colors

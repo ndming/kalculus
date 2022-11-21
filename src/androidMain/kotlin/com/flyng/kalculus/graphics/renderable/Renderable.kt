@@ -1,19 +1,22 @@
-package com.flyng.kalculus.renderable
+package com.flyng.kalculus.graphics.renderable
 
 import com.flyng.kalculus.core.manager.MaterialManager
 import com.flyng.kalculus.core.manager.ThemeManager
-import com.flyng.kalculus.renderable.mesh.Mesh
+import com.flyng.kalculus.graphics.renderable.mesh.Mesh
 import com.flyng.kalculus.visual.Visual
 import com.flyng.kalculus.visual.primitive.Topology
 import com.flyng.kalculus.visual.vertex.ByteSize
 import com.flyng.kalculus.visual.vertex.ColorAttribute
 import com.flyng.kalculus.visual.vertex.PositionAttribute
 import com.google.android.filament.*
-import com.google.android.filament.RenderableManager.PrimitiveType
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-actual fun Visual.bridge() = object : Renderable {
+actual interface Renderable {
+    fun loadMesh(engine: Engine, materialManager: MaterialManager, themeManager: ThemeManager): Mesh
+}
+
+actual fun Visual.renderable() = object : Renderable {
 
     override fun loadMesh(engine: Engine, materialManager: MaterialManager, themeManager: ThemeManager): Mesh {
         // create and load vertex buffer
@@ -168,9 +171,9 @@ actual fun Visual.bridge() = object : Renderable {
                     geometry(
                         index,
                         when (topology) {
-                            Topology.POINTS -> PrimitiveType.POINTS
-                            Topology.LINES -> PrimitiveType.LINES
-                            Topology.TRIANGLES -> PrimitiveType.TRIANGLES
+                            Topology.POINTS -> RenderableManager.PrimitiveType.POINTS
+                            Topology.LINES -> RenderableManager.PrimitiveType.LINES
+                            Topology.TRIANGLES -> RenderableManager.PrimitiveType.TRIANGLES
                         },
                         vertexBuffer,
                         indexBuffer,

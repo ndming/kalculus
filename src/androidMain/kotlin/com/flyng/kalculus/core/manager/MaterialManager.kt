@@ -3,7 +3,7 @@ package com.flyng.kalculus.core.manager
 import android.content.res.AssetManager
 import android.util.Log
 import com.flyng.kalculus.BuildConfig
-import com.flyng.kalculus.renderable.material.MaterialAsset
+import com.flyng.kalculus.graphics.renderable.material.MaterialAsset
 import com.flyng.kalculus.visual.primitive.MaterialLocal
 import com.google.android.filament.Engine
 import com.google.android.filament.Material

@@ -12,8 +12,8 @@ import androidx.lifecycle.LifecycleOwner
 import com.flyng.kalculus.BuildConfig
 import com.flyng.kalculus.core.manager.MaterialManager
 import com.flyng.kalculus.core.manager.ThemeManager
-import com.flyng.kalculus.renderable.bridge
-import com.flyng.kalculus.renderable.mesh.Mesh
+import com.flyng.kalculus.graphics.renderable.mesh.Mesh
+import com.flyng.kalculus.graphics.renderable.renderable
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.flyng.kalculus.visual.Visual
@@ -212,7 +212,7 @@ class CoreEngine(
     }
 
     fun render(visual: Visual) {
-        val mesh = visual.bridge().loadMesh(engine, materialManager, themeManager)
+        val mesh = visual.renderable().loadMesh(engine, materialManager, themeManager)
         meshes.add(mesh)
         scene.addEntity(mesh.entity)
     }
