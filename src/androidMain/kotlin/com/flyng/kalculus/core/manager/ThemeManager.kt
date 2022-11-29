@@ -56,9 +56,9 @@ class ThemeManager(
     }
 
     /**
-     * Extracts the current color in appropriate [ColorSpaces] for [Renderable] components.
+     * Extracts the base color in SRGB for [Renderable] components.
      */
-    fun renderableColor() = if (mode == ThemeMode.Light) {
+    fun baseColor() = if (mode == ThemeMode.Light) {
         profile.lightScheme.onPrimaryContainer.convert(ColorSpaces.Srgb)
     } else {
         profile.darkScheme.onPrimaryContainer.convert(ColorSpaces.Srgb)
@@ -76,7 +76,7 @@ class ThemeManager(
     }
 
     private fun setInstanceColor(instances: List<MaterialInstance>) {
-        val color = renderableColor()
+        val color = baseColor()
         instances.forEach { instance ->
             if (instance.material.hasParameter("baseColor")) {
                 instance.setParameter("baseColor", Colors.RgbType.SRGB, color.red, color.green, color.blue)

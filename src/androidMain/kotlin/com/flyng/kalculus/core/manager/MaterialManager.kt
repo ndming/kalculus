@@ -3,13 +3,16 @@ package com.flyng.kalculus.core.manager
 import android.content.res.AssetManager
 import android.util.Log
 import com.flyng.kalculus.BuildConfig
+import com.flyng.kalculus.exposition.visual.primitive.MaterialLocal
 import com.flyng.kalculus.graphics.renderable.material.MaterialAsset
-import com.flyng.kalculus.visual.primitive.MaterialLocal
 import com.google.android.filament.Engine
 import com.google.android.filament.Material
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 
+/**
+ * Manages all compiled [Material] invovled in the lifecycle of the application.
+ */
 class MaterialManager(engine: Engine, assetManager: AssetManager) {
     private val materials = mutableMapOf<String, Material>()
 
@@ -17,9 +20,7 @@ class MaterialManager(engine: Engine, assetManager: AssetManager) {
         MaterialLocal.values().forEach { material ->
             val filamat = readUncompressedAsset(
                 assetManager, MaterialAsset.filamat(material.name)
-            ).let { data ->
-                Material.Builder().payload(data, data.remaining()).build(engine)
-            }
+            ).let { data -> Material.Builder().payload(data, data.remaining()).build(engine) }
             materials[material.name] = filamat
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "add new material: ${material.name}")
@@ -27,9 +28,16 @@ class MaterialManager(engine: Engine, assetManager: AssetManager) {
         }
     }
 
-    operator fun get(material: MaterialLocal) = materials[material.name]!!
+    /**
+     * Obtains the compiled [Material] associated with the [materialLocal]. It is guaranteed to always have a
+     * pre-compiled material available for any [MaterialLocal].
+     */
+    operator fun get(materialLocal: MaterialLocal) = materials[materialLocal.name]!!
 
-    fun materials() = materials.values.toList()
+    /**
+     * Gets the sequence of compiled [Material]s this manager is holding.
+     */
+    fun materials() = materials.values.asSequence()
 
     private fun readUncompressedAsset(
         manager: AssetManager,

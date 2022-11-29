@@ -1,4 +1,4 @@
-package com.flyng.kalculus.visual.primitive
+package com.flyng.kalculus.exposition.visual.primitive
 
 data class Primitive(
     val topology: Topology,

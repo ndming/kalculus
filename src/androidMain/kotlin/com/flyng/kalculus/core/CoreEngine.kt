@@ -10,13 +10,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.flyng.kalculus.BuildConfig
+import com.flyng.kalculus.core.manager.CameraManager
 import com.flyng.kalculus.core.manager.MaterialManager
 import com.flyng.kalculus.core.manager.ThemeManager
+import com.flyng.kalculus.exposition.visual.Visual
+import com.flyng.kalculus.graphics.renderable.RenderableHandler
 import com.flyng.kalculus.graphics.renderable.mesh.Mesh
-import com.flyng.kalculus.graphics.renderable.renderable
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
-import com.flyng.kalculus.visual.Visual
 import com.google.android.filament.*
 import com.google.android.filament.android.DisplayHelper
 import com.google.android.filament.android.UiHelper
@@ -24,7 +25,9 @@ import com.google.android.filament.android.UiHelper.ContextErrorPolicy
 
 /**
  * The core rendering engine, backed by [Filament]. The core should be created when the owner activity or fragment into
- * which graphics is rendered enters [Lifecycle.State.CREATED] state.
+ * which graphics is rendered enters [Lifecycle.State.CREATED] state. By itself, the engine is a [LifecycleEventObserver]
+ * that can observe the host activity/fragment's [Lifecycle]. When creating the engine, the host should add the core to
+ * its lifecycle's observers so that the core can automatically react to the lifecycle of the host.
  *
  * Example usage:
  *
@@ -36,13 +39,14 @@ import com.google.android.filament.android.UiHelper.ContextErrorPolicy
  *      override fun onCreate(savedInstanceState: Bundle?) {
  *          super.onCreate(savedInstanceState)
  *
- *          coreEngine = CoreEngine(context = this, owner = this, assetManager = assets)
+ *          coreEngine = CoreEngine(context = this, assetManager = assets).also {
+ *              lifecycle.addObserver(it)
+ *          }
  *      }
  * ```
  *
  * The engine will create an instance of [SurfaceView] which can then be used to embed to Android's View layout or
- * `AndroidView` composable. The engine will also automatically bind to the provided lifecycle owner so no further
- * lifecycle-binding steps are required.
+ * `AndroidView` composable.
  *
  * Example use with Android's view-based layout:
  *
@@ -81,30 +85,22 @@ import com.google.android.filament.android.UiHelper.ContextErrorPolicy
  *      }
  * ```
  *
- * Note that this version of the engine will be destroyed and recreated with the same lifecycle sequence of the host
- * Activity/Fragment.
- *
  * @param context the [Context] where the produced [SurfaceView] should be created.
- * @param owner the [LifecycleOwner] to which the lifecycle of the engine will bind.
  * @param assetManager the [AssetManager] provided by the activity or fragment.
- * @param initialProfile the initial [ThemeProfile] to which state the core engine will enter.
- * @param initialMode the initial [ThemeMode] to which state the core engine will enter.
+ * @param initialProfile the initial [ThemeProfile] to which the core engine will enter.
+ * @param initialMode the initial [ThemeMode] to which the core engine will enter.
  */
 class CoreEngine(
     context: Context,
-    owner: LifecycleOwner,
     assetManager: AssetManager,
     initialProfile: ThemeProfile = ThemeProfile.Firewater,
     initialMode: ThemeMode = ThemeMode.Light,
-) {
+) : LifecycleEventObserver {
     /**
      * The rendering engine creates and holds a [SurfaceView] into which content of the scene is rendered. This view
      * can then be used by any activity or fragment to coordinate the desired layout.
      */
     val surfaceView = SurfaceView(context)
-
-    // Schedules new frames
-    private val choreographer = Choreographer.getInstance()
 
     // Manages SurfaceView
     private val uiHelper = UiHelper(ContextErrorPolicy.DONT_CHECK).apply {
@@ -114,6 +110,9 @@ class CoreEngine(
 
     // Manages the display
     private val displayHelper = DisplayHelper(context)
+
+    // Schedules new frames
+    private val choreographer = Choreographer.getInstance()
 
     // A renderer instance is tied to a single surface (SurfaceView, TextureView, etc.)
     private val renderer: Renderer
@@ -149,28 +148,10 @@ class CoreEngine(
 
     private val materialManager = MaterialManager(engine, assetManager)
 
+    val cameraManager = CameraManager(camera, view)
+
     init {
         setupView()
-
-        // bound the lifecycle of the engine to the lifecycle of the owner
-        if (owner.lifecycle.currentState != Lifecycle.State.DESTROYED) {
-            owner.lifecycle.addObserver(object : LifecycleEventObserver {
-                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                    if (source == owner) {
-                        when (event) {
-                            Lifecycle.Event.ON_RESUME -> resume()
-                            Lifecycle.Event.ON_PAUSE -> pause()
-                            Lifecycle.Event.ON_DESTROY -> {
-                                destroy()
-                                owner.lifecycle.removeObserver(this)
-                            }
-
-                            else -> return
-                        }
-                    }
-                }
-            })
-        }
     }
 
     /**
@@ -211,17 +192,30 @@ class CoreEngine(
         }
     }
 
-    fun render(visual: Visual) {
-        val mesh = visual.renderable().loadMesh(engine, materialManager, themeManager)
+    fun render(visual: Visual): Int {
+        val mesh = RenderableHandler.loadMesh(visual, engine, materialManager, themeManager)
         meshes.add(mesh)
         scene.addEntity(mesh.entity)
+        return mesh.entity
+    }
+
+    /**
+     * Should be called when the lifecycle of this [CoreEngine]'s owner transitions
+     * to [Lifecycle.Event.ON_CREATE] state. The purpose of this function is to broadcast
+     * the owner's lifecycle to any internal [LifecycleEventObserver] who wishes to observe it.
+     */
+    private fun broadcast(lifecycle: Lifecycle) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "lifecycle change: create")
+        }
+        lifecycle.addObserver(cameraManager)
     }
 
     /**
      * Should be called when the lifecycle of this [CoreEngine]'s owner transitions
      * to [Lifecycle.Event.ON_RESUME] state.
      */
-    internal fun resume() {
+    private fun resume() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "lifecycle change: resume")
         }
@@ -232,7 +226,7 @@ class CoreEngine(
      * Should be called when the lifecycle of this [CoreEngine]'s owner transitions
      * to [Lifecycle.Event.ON_PAUSE] state.
      */
-    internal fun pause() {
+    private fun pause() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "lifecycle change: pause")
         }
@@ -243,11 +237,10 @@ class CoreEngine(
      * Should be called when the lifecycle of this [CoreEngine]'s owner transitions
      * to [Lifecycle.Event.ON_DESTROY] state.
      */
-    internal fun destroy() {
+    private fun destroy() {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "lifecycle change: destroy")
         }
-
         // Stop the animation and any pending frame
         choreographer.removeFrameCallback(frameScheduler)
 
@@ -288,6 +281,20 @@ class CoreEngine(
         engine.destroy()
     }
 
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        when (event) {
+            Lifecycle.Event.ON_CREATE -> broadcast(source.lifecycle)
+            Lifecycle.Event.ON_RESUME -> resume()
+            Lifecycle.Event.ON_PAUSE -> pause()
+            Lifecycle.Event.ON_DESTROY -> {
+                destroy()
+                source.lifecycle.removeObserver(this)
+            }
+
+            else -> return
+        }
+    }
+
     private inner class FrameCallback : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
             // Schedule the next frame
@@ -326,25 +333,7 @@ class CoreEngine(
         }
 
         override fun onResized(width: Int, height: Int) {
-            val standard = 1.0
-            val zoomOut = 5.0
-            if (width < height) {
-                val ratio = height.toDouble() / width.toDouble()
-                camera.setProjection(
-                    Camera.Projection.ORTHO,
-                    -standard * zoomOut, standard * zoomOut,
-                    -standard * ratio * zoomOut, standard * ratio * zoomOut,
-                    0.0, 10.0
-                )
-            } else {
-                val ratio = width.toDouble() / height.toDouble()
-                camera.setProjection(
-                    Camera.Projection.ORTHO,
-                    -standard * ratio * zoomOut, standard * ratio * zoomOut,
-                    -standard * zoomOut, standard * zoomOut,
-                    0.0, 10.0
-                )
-            }
+            cameraManager.resize(width, height)
             view.viewport = Viewport(0, 0, width, height)
         }
     }
