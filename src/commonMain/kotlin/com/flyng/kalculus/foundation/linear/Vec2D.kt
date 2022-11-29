@@ -50,7 +50,7 @@ internal open class Vec2D(x: Number, y: Number) {
     }
 
     /**
-     * Scales this vector by the amount of [scalar].
+     * Scales this vector uniformly by the amount of [scalar].
      * @return this vector to chain the transform operations.
      */
     open fun scale(scalar: Number) = this.apply {
@@ -84,6 +84,17 @@ internal open class Vec2D(x: Number, y: Number) {
                 "Scalar argument must be either Short, Int, Long, Float, or Double."
             )
         }
+    }
+
+    /**
+     * Scales this vector with the scaling factors.
+     * @param scaleX scaling factor applied to x-coordinate.
+     * @param scaleY scaling factor applied to y-coordinate.
+     * @return this vector to chain the transform operations.
+     */
+    open fun scale(scaleX: Float, scaleY: Float) = this.apply {
+        x *= scaleX
+        y *= scaleY
     }
 
     /**

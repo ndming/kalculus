@@ -8,6 +8,8 @@ internal object Origin2D : Vec2D(0, 0) {
 
     override fun scale(scalar: Number) = copy().scale(scalar)
 
+    override fun scale(scaleX: Float, scaleY: Float) = copy().scale(scaleX, scaleY)
+
     override fun rotate(radian: Float) = copy().rotate(radian)
 
     override fun rotate(radian: Double) = copy().rotate(radian)
@@ -20,6 +22,8 @@ internal object IHat2D : Vec2D(1, 0) {
     override fun translate(vec2D: Vec2D) = copy().translate(vec2D)
 
     override fun scale(scalar: Number) = copy().scale(scalar)
+
+    override fun scale(scaleX: Float, scaleY: Float) = copy().scale(scaleX, scaleY)
 
     override fun rotate(radian: Float) = copy().rotate(radian)
 
@@ -34,6 +38,8 @@ internal object JHat2D : Vec2D(0, 1) {
     override fun translate(vec2D: Vec2D) = copy().translate(vec2D)
 
     override fun scale(scalar: Number) = copy().scale(scalar)
+
+    override fun scale(scaleX: Float, scaleY: Float) = copy().scale(scaleX, scaleY)
 
     override fun rotate(radian: Float) = copy().rotate(radian)
 

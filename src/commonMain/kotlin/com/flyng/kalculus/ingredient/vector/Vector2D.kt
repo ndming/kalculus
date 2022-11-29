@@ -1,28 +1,29 @@
 package com.flyng.kalculus.ingredient.vector
 
-import com.flyng.kalculus.foundation.geometry.IHat2D
-import com.flyng.kalculus.foundation.geometry.JHat2D
-import com.flyng.kalculus.foundation.geometry.Vec2D
-import com.flyng.kalculus.foundation.geometry.minus
-import com.flyng.kalculus.visual.Visual
-import com.flyng.kalculus.visual.boundary.Boundary
-import com.flyng.kalculus.visual.primitive.MaterialLocal
-import com.flyng.kalculus.visual.primitive.Primitive
-import com.flyng.kalculus.visual.primitive.Topology
-import com.flyng.kalculus.visual.vertex.PositionAttribute
-import com.flyng.kalculus.visual.vertex.Vertex
+import com.flyng.kalculus.exposition.stateful.Stateful
+import com.flyng.kalculus.exposition.visual.boundary.Boundary
+import com.flyng.kalculus.exposition.visual.primitive.MaterialLocal
+import com.flyng.kalculus.exposition.visual.primitive.Primitive
+import com.flyng.kalculus.exposition.visual.primitive.Topology
+import com.flyng.kalculus.exposition.visual.vertex.PositionAttribute
+import com.flyng.kalculus.exposition.visual.vertex.Vertex
+import com.flyng.kalculus.foundation.linear.IHat2D
+import com.flyng.kalculus.foundation.linear.JHat2D
+import com.flyng.kalculus.foundation.linear.Vec2D
+import com.flyng.kalculus.foundation.linear.minus
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
  * Displays an arrow-like 2D vector. The vector needs only a [head] and a [tail] coordinate in world space to define
- * itself.
+ * itself. Use [Vector2D.Builder] to construct a new 2D vector.
+ * @see Vector2D.Builder
  */
-class Vector2D internal constructor(
+class Vector2D private constructor(
     private val head: Vec2D,
     private val tail: Vec2D = Vec2D(0, 0),
-) : Visual {
+) : Stateful {
     private val normal: Vec2D
         get() = head - tail
 
@@ -59,8 +60,36 @@ class Vector2D internal constructor(
         private const val SHAFT_HALF_THICKNESS_RATIO = 0.01f
         private const val ARROW_BASE_OVER_HEIGHT_RATIO = 1.0f
         private const val ARROW_HEIGHT_RATIO = 0.1f
+    }
 
-        fun create(x: Number, y: Number) = Vector2D(head = Vec2D(x, y))
+    /**
+     * Builder class for [Vector2D].
+     */
+    class Builder {
+        private val head = Vec2D(0, 0)
+
+        private val tail = Vec2D(0, 0)
+
+        /**
+         * Specifies the head coordinates in world space for this vector.
+         */
+        fun head(x: Number, y: Number) = this.apply {
+            head.x = x.toFloat()
+            head.y = y.toFloat()
+        }
+
+        /**
+         * Specifies the tail coordinates in world space for this vector.
+         */
+        fun tail(x: Number, y: Number) = this.apply {
+            tail.x = x.toFloat()
+            tail.y = y.toFloat()
+        }
+
+        /**
+         * Constructs a new [Vector2D] from the specified head and tail.
+         */
+        fun build() = Vector2D(head, tail)
     }
 
     override fun primitives() = listOf(
@@ -68,7 +97,7 @@ class Vector2D internal constructor(
     )
 
     override fun vertices(color: ULong) = produceVertices().map {
-        Vertex(data = arrayOf(PositionAttribute(it.x, it.y, 0.0f)))
+        Vertex(data = listOf(PositionAttribute(it.x, it.y, 0.0f)))
     }
 
     override fun indices() = shortArrayOf(0, 6, 1, 1, 6, 5, 2, 4, 3)
@@ -84,5 +113,17 @@ class Vector2D internal constructor(
             halfExtentY = length / 2 * sin(theta),
             halfExtentZ = 0.01f
         )
+    }
+
+    override fun transform(tm: FloatArray) {
+        val hx = head.x
+        val hy = head.y
+        head.x = tm[0] * hx + tm[4] * hy + tm[12]
+        head.y = tm[1] * hx + tm[5] * hy + tm[13]
+
+        val tx = tail.x
+        val ty = tail.y
+        tail.x = tm[0] * tx + tm[4] * ty + tm[12]
+        tail.y = tm[1] * tx + tm[5] * ty + tm[13]
     }
 }
