@@ -13,14 +13,16 @@ class CameraManager(private val camera: Camera, private val view: View) : Lifecy
     private var currentOffsetX = 0.0f
     private var currentOffsetY = 0.0f
 
-    fun zoom(amount: Float) {
+    fun zoom(amount: Float, faciliate: Boolean = true) {
         currentZoom *= (amount * ZOOM_ENHACE_FACTOR)
         camera.setScaling(currentZoom.toDouble(), currentZoom.toDouble())
 
-        // facilitate the effect of single-point scaling
-        currentOffsetX *= amount * ZOOM_ENHACE_FACTOR
-        currentOffsetY *= amount * ZOOM_ENHACE_FACTOR
-        camera.setShift(currentOffsetX.toDouble(), currentOffsetY.toDouble())
+        if (faciliate) {
+            // facilitate the effect of single-point scaling
+            currentOffsetX *= amount * ZOOM_ENHACE_FACTOR
+            currentOffsetY *= amount * ZOOM_ENHACE_FACTOR
+            camera.setShift(currentOffsetX.toDouble(), currentOffsetY.toDouble())
+        }
     }
 
     fun shift(x: Float, y: Float) {
@@ -30,25 +32,18 @@ class CameraManager(private val camera: Camera, private val view: View) : Lifecy
     }
 
     fun resize(width: Int, height: Int) {
+        val svp = STANDARD_VIEW_PORT
         if (width < height) {
             val ratio = height.toDouble() / width.toDouble()
             camera.setProjection(
                 Camera.Projection.ORTHO,
-                -STANDARD_VIEW_PORT * currentZoom + currentOffsetX,
-                STANDARD_VIEW_PORT * currentZoom + currentOffsetX,
-                -STANDARD_VIEW_PORT * ratio * currentZoom + currentOffsetY,
-                STANDARD_VIEW_PORT * ratio * currentZoom + currentOffsetY,
-                0.0, 1.0
+                -svp, svp, -svp * ratio, svp * ratio, 0.0, 1.0
             )
         } else {
             val ratio = width.toDouble() / height.toDouble()
             camera.setProjection(
                 Camera.Projection.ORTHO,
-                -STANDARD_VIEW_PORT * ratio * currentZoom + currentOffsetX,
-                STANDARD_VIEW_PORT * ratio * currentZoom + currentOffsetX,
-                -STANDARD_VIEW_PORT * currentZoom + currentOffsetY,
-                STANDARD_VIEW_PORT * currentZoom + currentOffsetY,
-                0.0, 1.0
+                -svp * ratio, svp * ratio, -svp, svp, 0.0, 1.0
             )
         }
     }
@@ -98,6 +93,5 @@ class CameraManager(private val camera: Camera, private val view: View) : Lifecy
                 startValue.y + fraction * (endValue.y - startValue.y)
             )
         }
-
     }
 }
