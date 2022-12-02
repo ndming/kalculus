@@ -1,6 +1,7 @@
 package com.flyng.kalculus.core.manager
 
 import android.util.Log
+import androidx.compose.ui.graphics.colorspace.ColorSpace
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import com.flyng.kalculus.BuildConfig
 import com.flyng.kalculus.graphics.renderable.Renderable
@@ -8,29 +9,32 @@ import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.google.android.filament.Colors
 import com.google.android.filament.MaterialInstance
+import com.google.android.filament.Scene
 import com.google.android.filament.Skybox
 
 class ThemeManager(
+    private val scene: Scene,
+    private val meshManager: MeshManager,
     initialProfile: ThemeProfile = ThemeProfile.Firewater,
     initialMode: ThemeMode = ThemeMode.Light,
 ) {
     private var profile = initialProfile
     private var mode = initialMode
 
-    fun theme() = profile to mode
-
     /**
      * Call this function when the global [ThemeProfile] of the application change.
      * @param profile the new [ThemeProfile] to update.
      */
-    fun setThemeProfile(profile: ThemeProfile, skybox: Skybox, instances: List<MaterialInstance>) {
+    fun setProfile(profile: ThemeProfile) {
         // Only set the new configuration when it actually changes
         if (this.profile != profile) {
             // Update the internal states
             this.profile = profile
             // Set the new configuration
-            setSkyboxColor(skybox)
-            setInstanceColor(instances)
+            scene.skybox?.let {
+                setSkyboxColor(it)
+            }
+            setInstanceColor(meshManager.materialInstances)
         }
     }
 
@@ -38,16 +42,18 @@ class ThemeManager(
      * Call this function when the global [ThemeMode] of the application change.
      * @param mode the new [ThemeMode] to update.
      */
-    fun setThemeMode(mode: ThemeMode, skybox: Skybox, instances: List<MaterialInstance>) {
+    fun setMode(mode: ThemeMode) {
         if (this.mode != mode) {
             this.mode = mode
-            setSkyboxColor(skybox)
-            setInstanceColor(instances)
+            scene.skybox?.let {
+                setSkyboxColor(it)
+            }
+            setInstanceColor(meshManager.materialInstances)
         }
     }
 
     /**
-     * Extracts the current color in appropriate [ColorSpaces] for [Skybox].
+     * Extracts the current theme color in suitable [ColorSpace] for [Skybox].
      */
     fun skyboxColor() = if (mode == ThemeMode.Light) {
         profile.lightScheme.surface.convert(ColorSpaces.CieXyz)
@@ -56,7 +62,7 @@ class ThemeManager(
     }
 
     /**
-     * Extracts the base color in SRGB for [Renderable] components.
+     * Extracts the current theme color in suitable [ColorSpace] for [Renderable]'s base color.
      */
     fun baseColor() = if (mode == ThemeMode.Light) {
         profile.lightScheme.onPrimaryContainer.convert(ColorSpaces.Srgb)

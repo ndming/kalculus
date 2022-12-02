@@ -12,10 +12,10 @@ import androidx.lifecycle.LifecycleOwner
 import com.flyng.kalculus.BuildConfig
 import com.flyng.kalculus.core.manager.CameraManager
 import com.flyng.kalculus.core.manager.MaterialManager
+import com.flyng.kalculus.core.manager.MeshManager
 import com.flyng.kalculus.core.manager.ThemeManager
 import com.flyng.kalculus.exposition.visual.Visual
-import com.flyng.kalculus.graphics.renderable.RenderableHandler
-import com.flyng.kalculus.graphics.renderable.mesh.Mesh
+import com.flyng.kalculus.graphics.renderable.VisualHandler
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.google.android.filament.*
@@ -142,9 +142,9 @@ class CoreEngine(
     // Performs the rendering and schedules new frames
     private val frameScheduler = FrameCallback()
 
-    private val themeManager = ThemeManager(initialProfile, initialMode)
+    private val meshManager = MeshManager()
 
-    private val meshes = mutableListOf<Mesh>()
+    val themeManager = ThemeManager(scene, meshManager, initialProfile, initialMode)
 
     private val materialManager = MaterialManager(engine, assetManager)
 
@@ -172,29 +172,9 @@ class CoreEngine(
         view.scene = scene
     }
 
-    /**
-     * Call this function when the global [ThemeProfile] of the application change.
-     * @param profile the new [ThemeProfile] to update.
-     */
-    fun setThemeProfile(profile: ThemeProfile) {
-        scene.skybox?.let { skybox ->
-            themeManager.setThemeProfile(profile, skybox, meshes.flatMap { mesh -> mesh.materials })
-        }
-    }
-
-    /**
-     * Call this function when the global [ThemeMode] of the application change.
-     * @param mode the new [ThemeMode] to update.
-     */
-    fun setThemeMode(mode: ThemeMode) {
-        scene.skybox?.let { skybox ->
-            themeManager.setThemeMode(mode, skybox, meshes.flatMap { mesh -> mesh.materials })
-        }
-    }
-
     fun render(visual: Visual): Int {
-        val mesh = RenderableHandler.loadMesh(visual, engine, materialManager, themeManager)
-        meshes.add(mesh)
+        val mesh = VisualHandler.loadMesh(visual, engine, materialManager)
+        meshManager.add(mesh)
         scene.addEntity(mesh.entity)
         return mesh.entity
     }
@@ -248,6 +228,7 @@ class CoreEngine(
         uiHelper.detach()
 
         // Cleans up mesh resources
+        val meshes = meshManager.meshes
         meshes.forEach { (entity, indexBuffer, vertexBuffer, _, materials) ->
             engine.destroyEntity(entity)
             engine.destroyVertexBuffer(vertexBuffer)
