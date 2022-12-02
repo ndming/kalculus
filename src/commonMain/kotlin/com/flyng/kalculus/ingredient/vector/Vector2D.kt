@@ -1,29 +1,32 @@
 package com.flyng.kalculus.ingredient.vector
 
 import com.flyng.kalculus.exposition.stateful.Stateful
+import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.exposition.visual.boundary.Boundary
-import com.flyng.kalculus.exposition.visual.primitive.MaterialLocal
+import com.flyng.kalculus.exposition.visual.primitive.Color
+import com.flyng.kalculus.exposition.visual.primitive.DynamicColor
 import com.flyng.kalculus.exposition.visual.primitive.Primitive
 import com.flyng.kalculus.exposition.visual.primitive.Topology
 import com.flyng.kalculus.exposition.visual.vertex.PositionAttribute
 import com.flyng.kalculus.exposition.visual.vertex.Vertex
-import com.flyng.kalculus.foundation.linear.IHat2D
-import com.flyng.kalculus.foundation.linear.JHat2D
-import com.flyng.kalculus.foundation.linear.Vec2D
-import com.flyng.kalculus.foundation.linear.minus
+import com.flyng.kalculus.foundation.algebra.linear.IHat2D
+import com.flyng.kalculus.foundation.algebra.linear.JHat2D
+import com.flyng.kalculus.foundation.algebra.linear.Vec2D
+import com.flyng.kalculus.foundation.algebra.linear.minus
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Displays an arrow-like 2D vector. The vector needs only a [head] and a [tail] coordinate in world space to define
- * itself. Use [Vector2D.Builder] to construct a new 2D vector.
+ * Represents an arrow-like 2D vector. The ingredient requires a [head] and a [tail] coordinate in world space to define
+ * itself. It also accepts an optional [color] for specifying the initial appearance.
  * @see Vector2D.Builder
  */
 class Vector2D private constructor(
     private val head: Vec2D,
-    private val tail: Vec2D = Vec2D(0, 0),
-) : Stateful {
+    private val tail: Vec2D,
+    private val color: Color,
+) : Visual, Stateful {
     private val normal: Vec2D
         get() = head - tail
 
@@ -70,6 +73,8 @@ class Vector2D private constructor(
 
         private val tail = Vec2D(0, 0)
 
+        private val color: Color = Color.default
+
         /**
          * Specifies the head coordinates in world space for this vector.
          */
@@ -87,16 +92,26 @@ class Vector2D private constructor(
         }
 
         /**
-         * Constructs a new [Vector2D] from the specified head and tail.
+         * Sets the color for the vector, in SRGB space.
          */
-        fun build() = Vector2D(head, tail)
+        fun color(color: Color) = this.apply {
+            this.color.red = color.red
+            this.color.green = color.green
+            this.color.blue = color.blue
+            this.color.alpha = color.alpha
+        }
+
+        /**
+         * Constructs a new [Vector2D].
+         */
+        fun build() = Vector2D(head, tail, color)
     }
 
     override fun primitives() = listOf(
-        Primitive(Topology.TRIANGLES, 0, indices().size, MaterialLocal.dynamic_color),
+        Primitive(Topology.TRIANGLES, 0, indices().size, DynamicColor(color)),
     )
 
-    override fun vertices(color: ULong) = produceVertices().map {
+    override fun vertices() = produceVertices().map {
         Vertex(data = listOf(PositionAttribute(it.x, it.y, 0.0f)))
     }
 

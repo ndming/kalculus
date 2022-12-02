@@ -9,6 +9,7 @@ import com.google.android.filament.Engine
 import com.google.android.filament.Material
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
+import kotlin.reflect.full.createInstance
 
 /**
  * Manages all compiled [Material] invovled in the lifecycle of the application.
@@ -17,13 +18,13 @@ class MaterialManager(engine: Engine, assetManager: AssetManager) {
     private val materials = mutableMapOf<String, Material>()
 
     init {
-        MaterialLocal.values().forEach { material ->
-            val filamat = readUncompressedAsset(
-                assetManager, MaterialAsset.filamat(material.name)
-            ).let { data -> Material.Builder().payload(data, data.remaining()).build(engine) }
-            materials[material.name] = filamat
+        MaterialLocal::class.sealedSubclasses.map { it.createInstance() }.forEach { ml ->
+            val filamat = readUncompressedAsset(assetManager, MaterialAsset.filamat(ml.name)).let { data ->
+                Material.Builder().payload(data, data.remaining()).build(engine)
+            }
+            materials[ml.name] = filamat
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "add new material: ${material.name}")
+                Log.d(TAG, "add new material: ${ml.name}")
             }
         }
     }
