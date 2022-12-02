@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.20"
-android-gradle = "7.2.2"
+android-gradle = "7.3.0"
 filament = "1.27.1"
 kotlinx-serialization = "1.4.1"
 compose-jetbrains = "1.2.1"
