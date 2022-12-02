@@ -49,7 +49,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
                 if (firstCall) {
                     firstCall = false
                 } else {
-                    core.setThemeProfile(profile)
+                    core.themeManager.setProfile(profile)
                 }
             }
         })
@@ -60,7 +60,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
                 if (firstCall) {
                     firstCall = false
                 } else {
-                    core.setThemeMode(themeMode)
+                    core.themeManager.setMode(themeMode)
                 }
             }
         })

@@ -7,7 +7,7 @@ import com.flyng.kalculus.exposition.visual.vertex.Vertex
 interface Visual {
     fun primitives(): List<Primitive>
 
-    fun vertices(color: ULong): List<Vertex>
+    fun vertices(): List<Vertex>
 
     fun indices(): ShortArray
 
