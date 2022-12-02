@@ -4,7 +4,7 @@ import android.opengl.Matrix
 import com.flyng.kalculus.exposition.stateful.Stateful
 import com.google.android.filament.TransformManager
 
-actual object TransformableHandler : Transformable {
+actual object StatefulHandler : Transformable {
     override fun translate(
         stateful: Stateful,
         entity: Int,

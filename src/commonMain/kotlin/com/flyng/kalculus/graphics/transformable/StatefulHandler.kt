@@ -1,3 +1,3 @@
 package com.flyng.kalculus.graphics.transformable
 
-expect object TransformableHandler : Transformable
+expect object StatefulHandler : Transformable

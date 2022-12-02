@@ -1,4 +1,4 @@
-package com.flyng.kalculus.foundation.linear
+package com.flyng.kalculus.foundation.algebra.linear
 
 import kotlin.math.atan2
 import kotlin.math.cos

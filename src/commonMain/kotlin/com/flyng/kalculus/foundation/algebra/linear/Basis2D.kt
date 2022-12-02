@@ -1,4 +1,4 @@
-package com.flyng.kalculus.foundation.linear
+package com.flyng.kalculus.foundation.algebra.linear
 
 /**
  * Singleton for the origin point `(0, 0)` in 2D plane.

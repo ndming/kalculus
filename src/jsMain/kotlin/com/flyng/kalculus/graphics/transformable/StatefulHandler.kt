@@ -1,3 +1,3 @@
 package com.flyng.kalculus.graphics.transformable
 
-actual object TransformableHandler : Transformable
+actual object StatefulHandler : Transformable

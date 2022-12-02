@@ -1,9 +1,10 @@
 package com.flyng.kalculus.graphics.renderable
 
 import com.flyng.kalculus.core.manager.MaterialManager
-import com.flyng.kalculus.core.manager.ThemeManager
 import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.exposition.visual.boundary.Boundary
+import com.flyng.kalculus.exposition.visual.primitive.DynamicColor
+import com.flyng.kalculus.exposition.visual.primitive.PlainColor
 import com.flyng.kalculus.exposition.visual.primitive.Primitive
 import com.flyng.kalculus.exposition.visual.primitive.Topology
 import com.flyng.kalculus.exposition.visual.vertex.ByteSize
@@ -15,16 +16,14 @@ import com.google.android.filament.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-actual object RenderableHandler : Renderable {
+actual object VisualHandler : Renderable {
     override fun loadMesh(
         visual: Visual,
         engine: Engine,
         materialManager: MaterialManager,
-        themeManager: ThemeManager
     ): Mesh {
         // create and load vertex buffer
-        val color = themeManager.baseColor().value
-        val vertexBuffer = loadVertexBuffer(visual.vertices(color), engine)
+        val vertexBuffer = loadVertexBuffer(visual.vertices(), engine)
 
         // create and load index buffer
         val indexBuffer = loadIndexBuffer(visual.indices(), engine)
@@ -36,7 +35,6 @@ actual object RenderableHandler : Renderable {
             vertexBuffer,
             indexBuffer,
             materialManager,
-            themeManager
         )
     }
 
@@ -151,7 +149,6 @@ actual object RenderableHandler : Renderable {
         vertexBuffer: VertexBuffer,
         indexBuffer: IndexBuffer,
         materialManager: MaterialManager,
-        themeManager: ThemeManager,
     ): Mesh {
         val primitiveCount = primitives.size
 
@@ -187,19 +184,19 @@ actual object RenderableHandler : Renderable {
                     material(
                         index,
                         materialManager[material].let { filamat ->
-                            if (filamat.hasParameter("baseColor")) {
-                                filamat.createInstance().also { instance ->
-                                    val color = themeManager.baseColor()
-                                    // specify the color space in SRGB so that the conversion to appropriate space
-                                    // is automaitcally handled
-                                    instance.setParameter(
-                                        "baseColor", Colors.RgbType.SRGB,
-                                        color.red, color.green, color.blue
-                                    )
-                                    materials.add(instance)
+                            when (material) {
+                                is PlainColor -> filamat.defaultInstance.also { materials.add(it) }
+                                is DynamicColor -> {
+                                    filamat.createInstance().apply {
+                                        with(material.baseColor) {
+                                            setParameter(
+                                                "baseColor", Colors.RgbaType.SRGB,
+                                                red, green, blue, alpha
+                                            )
+                                        }
+                                        materials.add(this)
+                                    }
                                 }
-                            } else {
-                                filamat.defaultInstance.also { materials.add(it) }
                             }
                         }
                     )

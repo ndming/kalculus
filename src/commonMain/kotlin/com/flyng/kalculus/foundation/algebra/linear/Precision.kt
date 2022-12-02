@@ -1,4 +1,4 @@
-package com.flyng.kalculus.foundation.linear
+package com.flyng.kalculus.foundation.algebra.linear
 
 import kotlin.math.pow
 import kotlin.math.roundToInt
