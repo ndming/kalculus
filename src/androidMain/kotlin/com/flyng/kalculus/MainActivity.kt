@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.livedata.observeAsState
 import com.flyng.kalculus.exposition.visual.primitive.Color
-import com.flyng.kalculus.ingredient.vector.Vector2D
+import com.flyng.kalculus.ingredient.conic.Circle
 import com.flyng.kalculus.theme.KalculusTheme
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
@@ -40,19 +40,14 @@ class MainActivity : ComponentActivity() {
             Color(it.red, it.green, it.blue, it.alpha)
         }
 
-        val vectorX = Vector2D.Builder()
-            .head(1, 0)
-            .tail(0, 0)
+        val circle = Circle.Builder()
+            .center(0, 0)
+            .radius(0.5f)
+            .strokeWidth(0.02f)
             .color(color)
             .build()
 
-        val vectorY = Vector2D.Builder()
-            .head(0, 1)
-            .tail(0, 0)
-            .color(color)
-            .build()
-
-        vm.core.render(vectorX + vectorY)
+        vm.core.render(circle)
     }
 
     companion object {
