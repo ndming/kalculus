@@ -83,7 +83,7 @@ actual object VisualHandler : Renderable {
                         is PositionAttribute -> {
                             attribute(
                                 VertexBuffer.VertexAttribute.POSITION,
-                                0,
+                                0,  // each visual should only use 1 vertex buffer
                                 VertexBuffer.AttributeType.FLOAT3,
                                 attributes
                                     .dropLast(attributes.size - idx)
@@ -175,6 +175,8 @@ actual object VisualHandler : Renderable {
                             Topology.POINTS -> RenderableManager.PrimitiveType.POINTS
                             Topology.LINES -> RenderableManager.PrimitiveType.LINES
                             Topology.TRIANGLES -> RenderableManager.PrimitiveType.TRIANGLES
+                            Topology.LINE_STRIP -> RenderableManager.PrimitiveType.LINE_STRIP
+                            Topology.TRIANGLE_STRIP -> RenderableManager.PrimitiveType.TRIANGLE_STRIP
                         },
                         vertexBuffer,
                         indexBuffer,

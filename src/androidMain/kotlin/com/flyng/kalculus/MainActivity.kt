@@ -52,8 +52,7 @@ class MainActivity : ComponentActivity() {
             .color(color)
             .build()
 
-        vm.core.render(vectorX)
-        vm.core.render(vectorY)
+        vm.core.render(vectorX + vectorY)
     }
 
     companion object {
