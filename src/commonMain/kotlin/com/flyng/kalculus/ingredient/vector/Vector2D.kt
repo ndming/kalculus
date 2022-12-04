@@ -13,6 +13,7 @@ import com.flyng.kalculus.foundation.algebra.linear.IHat2D
 import com.flyng.kalculus.foundation.algebra.linear.JHat2D
 import com.flyng.kalculus.foundation.algebra.linear.Vec2D
 import com.flyng.kalculus.foundation.algebra.linear.minus
+import com.flyng.kalculus.ingredient.IngredientBuilder
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -68,12 +69,10 @@ class Vector2D private constructor(
     /**
      * Builder class for [Vector2D].
      */
-    class Builder {
+    class Builder : IngredientBuilder<Vector2D>() {
         private val head = Vec2D(0, 0)
 
         private val tail = Vec2D(0, 0)
-
-        private val color: Color = Color.default
 
         /**
          * Specifies the head coordinates in world space for this vector.
@@ -92,19 +91,9 @@ class Vector2D private constructor(
         }
 
         /**
-         * Sets the color for the vector, in SRGB space.
-         */
-        fun color(color: Color) = this.apply {
-            this.color.red = color.red
-            this.color.green = color.green
-            this.color.blue = color.blue
-            this.color.alpha = color.alpha
-        }
-
-        /**
          * Constructs a new [Vector2D].
          */
-        fun build() = Vector2D(head, tail, color)
+        override fun build() = Vector2D(head, tail, color)
     }
 
     override fun primitives() = listOf(

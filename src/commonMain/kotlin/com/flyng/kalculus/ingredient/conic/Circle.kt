@@ -9,6 +9,7 @@ import com.flyng.kalculus.exposition.visual.primitive.Topology
 import com.flyng.kalculus.exposition.visual.vertex.PositionAttribute
 import com.flyng.kalculus.exposition.visual.vertex.Vertex
 import com.flyng.kalculus.foundation.algebra.linear.Vec2D
+import com.flyng.kalculus.ingredient.IngredientBuilder
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -55,12 +56,10 @@ class Circle private constructor(
     /**
      * Builder class for [Circle].
      */
-    class Builder {
+    class Builder : IngredientBuilder<Circle>() {
         private val center = Vec2D(0, 0)
 
         private var radius = 1.0f
-
-        private val color = Color.default
 
         private var stroke = 0.0f
 
@@ -80,23 +79,13 @@ class Circle private constructor(
         }
 
         /**
-         * Provides the initial [color] for this ingredient to render with.
-         */
-        fun color(color: Color) = this.apply {
-            this.color.red = color.red
-            this.color.green = color.green
-            this.color.blue = color.blue
-            this.color.alpha = color.alpha
-        }
-
-        /**
          * Sets the [width] of the circle boundary.
          */
         fun strokeWidth(width: Float) = this.apply {
             stroke = width
         }
 
-        fun build(): Circle {
+        override fun build(): Circle {
             if (radius < 0) {
                 throw RuntimeException("Radius must be non-negative, provided value was $radius")
             }
