@@ -41,8 +41,10 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
     )
 
     init {
+        // bind the core to the owner's lifecycle
         owner.lifecycle.addObserver(core)
 
+        // observe the global change of profile
         profile.observe(owner, object : Observer<ThemeProfile> {
             var firstCall = true
             override fun onChanged(profile: ThemeProfile) {
@@ -54,6 +56,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
             }
         })
 
+        // observe the global change of mode
         mode.observe(owner, object : Observer<ThemeMode> {
             var firstCall = true
             override fun onChanged(themeMode: ThemeMode) {

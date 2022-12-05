@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.livedata.observeAsState
 import com.flyng.kalculus.exposition.visual.primitive.Color
-import com.flyng.kalculus.ingredient.conic.Circle
+import com.flyng.kalculus.ingredient.conic.Circle2D
 import com.flyng.kalculus.theme.KalculusTheme
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
@@ -40,14 +40,14 @@ class MainActivity : ComponentActivity() {
             Color(it.red, it.green, it.blue, it.alpha)
         }
 
-        val circle = Circle.Builder()
+        val circle2D = Circle2D.Builder()
             .center(0, 0)
             .radius(0.5f)
             .strokeWidth(0.02f)
             .color(color)
             .build()
 
-        vm.core.render(circle)
+        vm.core.render(circle2D)
     }
 
     companion object {

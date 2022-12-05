@@ -4,16 +4,29 @@ import android.animation.AnimatorSet
 import android.animation.TypeEvaluator
 import android.animation.ValueAnimator
 import android.view.animation.AccelerateDecelerateInterpolator
-import com.flyng.kalculus.core.lifecycle.LifecycleAnimation
+import androidx.core.animation.doOnEnd
 import com.google.android.filament.Camera
 import com.google.android.filament.View
+import kotlin.math.abs
 
-class CameraManager(private val camera: Camera, private val view: View) : LifecycleAnimation() {
+/**
+ * Responsible for manipulating the perspective to the render area.
+ */
+class CameraManager(
+    private val camera: Camera,
+    private val view: View,
+    private val animManager: AnimationManager
+) {
     private var currentZoom = 1.0f
     private var currentOffsetX = 0.0f
     private var currentOffsetY = 0.0f
 
+    private val offsetEvaluator = OffsetEvaluator()
+    private var originSnap: AnimatorSet? = null
+
     fun zoom(amount: Float, faciliate: Boolean = true) {
+        originSnap?.cancel()
+
         currentZoom *= (amount * ZOOM_ENHACE_FACTOR)
         camera.setScaling(currentZoom.toDouble(), currentZoom.toDouble())
 
@@ -26,62 +39,58 @@ class CameraManager(private val camera: Camera, private val view: View) : Lifecy
     }
 
     fun shift(x: Float, y: Float) {
+        originSnap?.cancel()
+
         currentOffsetX += x / view.viewport.width
         currentOffsetY += VERTICAL_ORIENTATION * y / view.viewport.height
+
         camera.setShift(currentOffsetX.toDouble(), currentOffsetY.toDouble())
     }
 
-    fun resize(width: Int, height: Int) {
-        val svp = STANDARD_VIEW_PORT
-        if (width < height) {
-            val ratio = height.toDouble() / width.toDouble()
-            camera.setProjection(
-                Camera.Projection.ORTHO,
-                -svp, svp, -svp * ratio, svp * ratio, 0.0, 1.0
-            )
-        } else {
-            val ratio = width.toDouble() / height.toDouble()
-            camera.setProjection(
-                Camera.Projection.ORTHO,
-                -svp * ratio, svp * ratio, -svp, svp, 0.0, 1.0
-            )
-        }
-    }
-
     fun reset() {
-        val zoomAnimator = ValueAnimator.ofFloat(currentZoom, 1.0f).apply {
-            interpolator = AccelerateDecelerateInterpolator()
-            duration = SNAP_ORIGIN_DURATION
-            repeatCount = 0
-            addUpdateListener {
-                currentZoom = it.animatedValue as Float
-                camera.setScaling(currentZoom.toDouble(), currentZoom.toDouble())
+        if (originSnap == null) {
+            val maxDepart = maxOf(
+                abs(currentZoom - 1.0f),
+                abs(currentOffsetX - 0.0f),
+                abs(currentOffsetY - 0.0f)
+            ).coerceIn(0.25f, 0.8f)
+            val duration = (maxDepart * SNAP_ORIGIN_FACTOR).toLong()
+
+            val zoomAnimator = ValueAnimator.ofFloat(currentZoom, 1.0f).apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                this.duration = duration
+                repeatCount = 0
+                addUpdateListener {
+                    currentZoom = it.animatedValue as Float
+                    camera.setScaling(currentZoom.toDouble(), currentZoom.toDouble())
+                }
             }
-        }
-        val offsetAnimator = ValueAnimator.ofObject(
-            OffsetEvaluator(), Offset(currentOffsetX, currentOffsetY), Offset(0.0f, 0.0f)
-        ).apply {
-            interpolator = AccelerateDecelerateInterpolator()
-            duration = SNAP_ORIGIN_DURATION
-            repeatCount = 0
-            addUpdateListener {
-                currentOffsetX = (it.animatedValue as Offset).x
-                currentOffsetY = (it.animatedValue as Offset).y
-                camera.setShift(currentOffsetX.toDouble(), currentOffsetY.toDouble())
+            val offsetAnimator = ValueAnimator.ofObject(
+                offsetEvaluator, Offset(currentOffsetX, currentOffsetY), Offset(0.0f, 0.0f)
+            ).apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                this.duration = duration
+                repeatCount = 0
+                addUpdateListener {
+                    currentOffsetX = (it.animatedValue as Offset).x
+                    currentOffsetY = (it.animatedValue as Offset).y
+                    camera.setShift(currentOffsetX.toDouble(), currentOffsetY.toDouble())
+                }
             }
+
+            originSnap = AnimatorSet().apply {
+                play(zoomAnimator).with(offsetAnimator)
+                doOnEnd { originSnap = null }
+            }
+            animManager.submit(originSnap ?: return)
         }
-        val orginSnap = AnimatorSet().apply {
-            play(zoomAnimator).with(offsetAnimator)
-        }
-        // submit animator to lifecycle-awared animation
-        submit(orginSnap)
     }
 
     companion object {
-        private const val STANDARD_VIEW_PORT = 1.0
+        const val STANDARD_VIEW_PORT = 1.0
         private const val ZOOM_ENHACE_FACTOR = 1.0f
         private const val VERTICAL_ORIENTATION = -1.0f
-        private const val SNAP_ORIGIN_DURATION = 500L
+        private const val SNAP_ORIGIN_FACTOR = 1500
     }
 
     private data class Offset(val x: Float, val y: Float)

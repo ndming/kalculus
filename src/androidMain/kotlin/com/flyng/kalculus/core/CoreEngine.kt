@@ -9,11 +9,7 @@ import android.view.SurfaceView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import com.flyng.kalculus.BuildConfig
-import com.flyng.kalculus.core.manager.CameraManager
-import com.flyng.kalculus.core.manager.MaterialManager
-import com.flyng.kalculus.core.manager.MeshManager
-import com.flyng.kalculus.core.manager.ThemeManager
+import com.flyng.kalculus.core.manager.*
 import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.graphics.renderable.VisualHandler
 import com.flyng.kalculus.theme.ThemeMode
@@ -142,13 +138,15 @@ class CoreEngine(
     // Performs the rendering and schedules new frames
     private val frameScheduler = FrameCallback()
 
+    private val animationManager = AnimationManager()
+
     private val meshManager = MeshManager()
 
     val themeManager = ThemeManager(scene, meshManager, initialProfile, initialMode)
 
     private val materialManager = MaterialManager(engine, assetManager)
 
-    val cameraManager = CameraManager(camera, view)
+    val cameraManager = CameraManager(camera, view, animationManager)
 
     init {
         setupView()
@@ -181,25 +179,12 @@ class CoreEngine(
 
     /**
      * Should be called when the lifecycle of this [CoreEngine]'s owner transitions
-     * to [Lifecycle.Event.ON_CREATE] state. The purpose of this function is to broadcast
-     * the owner's lifecycle to any internal [LifecycleEventObserver] who wishes to observe it.
-     */
-    private fun broadcast(lifecycle: Lifecycle) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "lifecycle change: create")
-        }
-        lifecycle.addObserver(cameraManager)
-    }
-
-    /**
-     * Should be called when the lifecycle of this [CoreEngine]'s owner transitions
      * to [Lifecycle.Event.ON_RESUME] state.
      */
     private fun resume() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "lifecycle change: resume")
-        }
+        Log.d(TAG, "lifecycle change: resume")
         choreographer.postFrameCallback(frameScheduler)
+        animationManager.resume()
     }
 
     /**
@@ -207,9 +192,8 @@ class CoreEngine(
      * to [Lifecycle.Event.ON_PAUSE] state.
      */
     private fun pause() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "lifecycle change: pause")
-        }
+        Log.d(TAG, "lifecycle change: pause")
+        animationManager.pause()
         choreographer.removeFrameCallback(frameScheduler)
     }
 
@@ -218,10 +202,9 @@ class CoreEngine(
      * to [Lifecycle.Event.ON_DESTROY] state.
      */
     private fun destroy() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "lifecycle change: destroy")
-        }
+        Log.d(TAG, "lifecycle change: destroy")
         // Stop the animation and any pending frame
+        animationManager.cancel()
         choreographer.removeFrameCallback(frameScheduler)
 
         // Always detach the surface before destroying the engine
@@ -264,7 +247,6 @@ class CoreEngine(
 
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         when (event) {
-            Lifecycle.Event.ON_CREATE -> broadcast(source.lifecycle)
             Lifecycle.Event.ON_RESUME -> resume()
             Lifecycle.Event.ON_PAUSE -> pause()
             Lifecycle.Event.ON_DESTROY -> {
@@ -314,7 +296,20 @@ class CoreEngine(
         }
 
         override fun onResized(width: Int, height: Int) {
-            cameraManager.resize(width, height)
+            val svp = CameraManager.STANDARD_VIEW_PORT
+            if (width < height) {
+                val ratio = height.toDouble() / width.toDouble()
+                camera.setProjection(
+                    Camera.Projection.ORTHO,
+                    -svp, svp, -svp * ratio, svp * ratio, 0.0, 1.0
+                )
+            } else {
+                val ratio = width.toDouble() / height.toDouble()
+                camera.setProjection(
+                    Camera.Projection.ORTHO,
+                    -svp * ratio, svp * ratio, -svp, svp, 0.0, 1.0
+                )
+            }
             view.viewport = Viewport(0, 0, width, height)
         }
     }
