@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.livedata.observeAsState
 import com.flyng.kalculus.exposition.visual.primitive.Color
 import com.flyng.kalculus.ingredient.conic.Circle2D
+import com.flyng.kalculus.ingredient.grid.Grid2D
 import com.flyng.kalculus.theme.KalculusTheme
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
@@ -47,7 +48,12 @@ class MainActivity : ComponentActivity() {
             .color(color)
             .build()
 
+        val grid = Grid2D.Builder()
+            .color(color.copy(alpha = 0.8f))
+            .build()
+
         vm.core.render(circle2D)
+        vm.core.render(grid)
     }
 
     companion object {
