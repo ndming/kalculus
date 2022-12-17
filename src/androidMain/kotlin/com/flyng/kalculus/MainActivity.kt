@@ -43,13 +43,15 @@ class MainActivity : ComponentActivity() {
 
         val circle2D = Circle2D.Builder()
             .center(0, 0)
-            .radius(0.5f)
-            .strokeWidth(0.02f)
-            .color(color)
+            .radius(1.0f)
+            .strokeWidth(0.2f)
+            .color(color.copy(alpha = 0.1f))
             .build()
 
         val grid = Grid2D.Builder()
-            .color(color.copy(alpha = 0.8f))
+            .center(0, 0)
+            .spacing(1.0f)
+            .color(color)
             .build()
 
         vm.core.render(circle2D)

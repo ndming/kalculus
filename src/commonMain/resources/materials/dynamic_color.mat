@@ -9,20 +9,33 @@ material {
     name : dynamic_color,
 
     parameters : [
+        // supplied color must be in linear SRGB
         {
             type : float3,
-            name : baseColor
+            name : rgb
+        },
+        // a separate alpha parameter for independent manipulations between rgb and alpha
+        {
+            type : float,
+            name : alpha
         }
     ],
 
     // this material disables all lighting
     shadingModel : unlit,
+
+    // alpha composited with the render target, using Porter-Duff's source over rule
+    blending : transparent,
 }
 
 fragment {
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
 
-        material.baseColor.rgb = materialParams.baseColor;
+        material.baseColor.rgb = materialParams.rgb;
+        material.baseColor.a = materialParams.alpha;
+
+        // pre-multiply alpha on the GPU for extra performance gain
+        material.baseColor.rgb *= materialParams.alpha;
     }
 }

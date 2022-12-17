@@ -7,7 +7,6 @@ import com.flyng.kalculus.BuildConfig
 import com.flyng.kalculus.graphics.renderable.Renderable
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
-import com.google.android.filament.Colors
 import com.google.android.filament.MaterialInstance
 import com.google.android.filament.Scene
 import com.google.android.filament.Skybox
@@ -56,18 +55,18 @@ class ThemeManager(
      * Extracts the current theme color in suitable [ColorSpace] for [Skybox].
      */
     fun skyboxColor() = if (mode == ThemeMode.Light) {
-        profile.lightScheme.surface.convert(ColorSpaces.CieXyz)
+        profile.lightScheme.surface.convert(skyboxColorSpace)
     } else {
-        profile.darkScheme.surface.convert(ColorSpaces.CieXyz)
+        profile.darkScheme.surface.convert(skyboxColorSpace)
     }
 
     /**
      * Extracts the current theme color in suitable [ColorSpace] for [Renderable]'s base color.
      */
     fun baseColor() = if (mode == ThemeMode.Light) {
-        profile.lightScheme.onPrimaryContainer.convert(ColorSpaces.Srgb)
+        profile.lightScheme.onPrimaryContainer.convert(baseColorSpace)
     } else {
-        profile.darkScheme.onPrimaryContainer.convert(ColorSpaces.Srgb)
+        profile.darkScheme.onPrimaryContainer.convert(baseColorSpace)
     }
 
     /**
@@ -84,13 +83,16 @@ class ThemeManager(
     private fun setInstanceColor(instances: List<MaterialInstance>) {
         val color = baseColor()
         instances.forEach { instance ->
-            if (instance.material.hasParameter("baseColor")) {
-                instance.setParameter("baseColor", Colors.RgbType.SRGB, color.red, color.green, color.blue)
+            if (instance.material.hasParameter("rgb")) {
+                instance.setParameter("rgb", color.red, color.green, color.blue)
             }
         }
     }
 
     companion object {
         private const val TAG = "CoreEngineThemeManager"
+
+        private val baseColorSpace = ColorSpaces.LinearSrgb
+        private val skyboxColorSpace = ColorSpaces.CieXyz
     }
 }

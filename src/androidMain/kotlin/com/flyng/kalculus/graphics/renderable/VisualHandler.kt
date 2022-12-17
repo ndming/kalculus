@@ -191,10 +191,10 @@ actual object VisualHandler : Renderable {
                                 is DynamicColor -> {
                                     filamat.createInstance().apply {
                                         with(material.baseColor) {
-                                            setParameter(
-                                                "baseColor", Colors.RgbaType.SRGB,
-                                                red, green, blue, alpha
-                                            )
+                                            // color must be in linear SRGB
+                                            setParameter("rgb", red, green, blue)
+                                            // alpha will be pre-multiplied by the GPU
+                                            setParameter("alpha", alpha)
                                         }
                                         materials.add(this)
                                     }

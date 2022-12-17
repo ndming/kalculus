@@ -18,7 +18,7 @@ import kotlin.math.sin
  * Represents a 2D circle with [center] and [radius]. An optional [color] can be specified for the initial look of the
  * ingredient upon first-time render.
  */
-class Circle private constructor(
+class Circle2D private constructor(
     private val center: Vec2D,
     private val radius: Float,
     private val color: Color,
@@ -54,9 +54,9 @@ class Circle private constructor(
     }
 
     /**
-     * Builder class for [Circle].
+     * Builder class for [Circle2D].
      */
-    class Builder : IngredientBuilder<Circle>() {
+    class Builder : IngredientBuilder<Circle2D>() {
         private val center = Vec2D(0, 0)
 
         private var radius = 1.0f
@@ -85,18 +85,20 @@ class Circle private constructor(
             stroke = width
         }
 
-        override fun build(): Circle {
+        override fun build(): Circle2D {
             if (radius < 0) {
-                throw RuntimeException("Radius must be non-negative, provided value was $radius")
+                throw RuntimeException("Negative radius is disallowed: $radius")
             }
-            return Circle(center, radius, color, if (stroke < 0) 0.0f else stroke)
+            return Circle2D(center, radius, color, if (stroke < 0) 0.0f else stroke)
         }
     }
 
     override fun primitives() = listOf(
         Primitive(
             topology = if (stroke == 0.0f) Topology.LINE_STRIP else Topology.TRIANGLE_STRIP,
-            offset = 0, count = indices().size, DynamicColor(color)
+            offset = 0,
+            count = indices().size,
+            material = DynamicColor(color)
         )
     )
 
