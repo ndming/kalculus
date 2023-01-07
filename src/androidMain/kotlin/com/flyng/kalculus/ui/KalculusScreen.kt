@@ -12,12 +12,14 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.viewinterop.AndroidView
 import com.flyng.kalculus.MainViewModel
+import com.flyng.kalculus.foundation.algebra.linear.round
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 
@@ -88,7 +90,7 @@ fun KalculusScreen(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 FilledIconButton(
                     onClick = vm.core.cameraManager::reset
@@ -98,6 +100,7 @@ fun KalculusScreen(
                         contentDescription = null,
                     )
                 }
+                Text(text = "(${vm.coordX.round(2)}, ${vm.coordY.round(2)})")
                 FilledIconButton(
                     onClick = onDrawVector
                 ) {

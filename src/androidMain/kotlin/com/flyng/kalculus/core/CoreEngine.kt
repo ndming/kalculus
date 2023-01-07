@@ -140,7 +140,7 @@ class CoreEngine(
 
     val animationManager = AnimationManager()
 
-    private val meshManager = MeshManager()
+    val meshManager = MeshManager()
 
     val themeManager = ThemeManager(scene, meshManager, initialProfile, initialMode)
 
@@ -198,6 +198,18 @@ class CoreEngine(
         Log.d(TAG, "lifecycle change: pause")
         animationManager.pause()
         choreographer.removeFrameCallback(frameScheduler)
+    }
+
+    fun destroy(@Entity entity: Int) {
+        meshManager[entity]?.let { (entity, indexBuffer, vertexBuffer, _, instances) ->
+            engine.destroyEntity(entity)
+            engine.destroyVertexBuffer(vertexBuffer)
+            engine.destroyIndexBuffer(indexBuffer)
+            instances.forEach { instance ->
+                engine.destroyMaterialInstance(instance)
+            }
+            EntityManager.get().destroy(entity)
+        }
     }
 
     /**

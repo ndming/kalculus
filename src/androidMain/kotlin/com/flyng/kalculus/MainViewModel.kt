@@ -4,6 +4,10 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.AssetManager
 import android.view.animation.LinearInterpolator
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.core.animation.doOnEnd
 import androidx.lifecycle.*
 import com.flyng.kalculus.adapter.StatefulAdapter
 import com.flyng.kalculus.core.CoreEngine
@@ -14,6 +18,7 @@ import com.flyng.kalculus.ingredient.grid.Grid2D
 import com.flyng.kalculus.ingredient.vector.Vector2D
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
+import kotlinx.coroutines.launch
 
 class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: AssetManager) : ViewModel() {
     val profile: LiveData<ThemeProfile>
@@ -65,13 +70,6 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         .color(color.copy(alpha = 0.5f))
         .build()
 
-    private val seg = Segment2D.Builder()
-        .begin(0, 2)
-        .final(2, 0)
-        .width(0.5f)
-        .color(color)
-        .build()
-
     private val origin = Circle2D.Builder()
         .center(0, 0)
         .radius(0.02f)
@@ -109,10 +107,15 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
 
         vecId = core.render(vector2D)
         core.render(grid + origin)
-        core.render(seg)
     }
 
     private val animator = ValueAnimator.ofFloat(0.0f, 360.0f)
+
+    var coordX: Float by mutableStateOf(1.0f)
+        private set
+    var coordY: Float by mutableStateOf(0.0f)
+        private set
+
     private fun animate() {
         if (!animator.isStarted) {
             animator.apply {
@@ -125,6 +128,12 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
                         vector2D, vecId, core.transformer,
                         0.0f, 0.0f, 1.0f, angle.animatedValue as Float
                     )
+                    val (x, y) = vector2D.tip()
+
+                    viewModelScope.launch { createSegment(x, y) }
+
+                    coordX = x
+                    coordY = y
                 }
             }
             core.animationManager.submit(animator)
@@ -132,6 +141,32 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
             animator.pause()
         } else {
             animator.resume()
+        }
+    }
+
+    private fun createSegment(x: Float, y: Float) {
+        val seg = Segment2D.Builder()
+            .begin(coordX, coordY)
+            .final(x, y)
+            .width(0.04f)
+            .color(color)
+            .build()
+        val id = core.render(seg)
+        core.meshManager[id]?.materials?.let { instances ->
+            val alphaAnimator = ValueAnimator.ofFloat(1.0f, 0.0f).apply {
+                interpolator = LinearInterpolator()
+                duration = 1000 * TIME_SCALE
+                repeatCount = 0
+                addUpdateListener { alpha ->
+                    instances.forEach { instance ->
+                        if (instance.material.hasParameter("alpha")) {
+                            instance.setParameter("alpha", alpha.animatedValue as Float)
+                        }
+                    }
+                }
+                doOnEnd { core.destroy(id) }
+            }
+            core.animationManager.submit(alphaAnimator)
         }
     }
 
@@ -151,6 +186,6 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
     }
 
     companion object {
-        private const val TIME_SCALE = 4L
+        private const val TIME_SCALE = 5L
     }
 }

@@ -28,6 +28,8 @@ class Vector2D private constructor(
     private val tail: Vec2D,
     private val color: Color,
 ) : Visual, Stateful {
+    private val originalHead = Vec2D(head.x, head.y)
+    private val originalTail = Vec2D(tail.x, tail.y)
     private val normal: Vec2D
         get() = head - tail
 
@@ -62,10 +64,12 @@ class Vector2D private constructor(
 
     fun clone(color: Color = this.color) = Vector2D(head, tail, color)
 
+    fun tip() = head.x to head.y
+
     companion object {
         private const val SHAFT_HALF_THICKNESS_RATIO = 0.01f
         private const val ARROW_BASE_OVER_HEIGHT_RATIO = 1.0f
-        private const val ARROW_HEIGHT_RATIO = 0.1f
+        private const val ARROW_HEIGHT_RATIO = 0.2f
     }
 
     /**
@@ -122,13 +126,13 @@ class Vector2D private constructor(
     }
 
     override fun transform(tm: FloatArray) {
-        val hx = head.x
-        val hy = head.y
+        val hx = originalHead.x
+        val hy = originalHead.y
         head.x = tm[0] * hx + tm[4] * hy + tm[12]
         head.y = tm[1] * hx + tm[5] * hy + tm[13]
 
-        val tx = tail.x
-        val ty = tail.y
+        val tx = originalTail.x
+        val ty = originalTail.y
         tail.x = tm[0] * tx + tm[4] * ty + tm[12]
         tail.y = tm[1] * tx + tm[5] * ty + tm[13]
     }
