@@ -9,6 +9,7 @@ import com.flyng.kalculus.adapter.StatefulAdapter
 import com.flyng.kalculus.core.CoreEngine
 import com.flyng.kalculus.exposition.visual.primitive.Color
 import com.flyng.kalculus.ingredient.conic.Circle2D
+import com.flyng.kalculus.ingredient.curve.Segment2D
 import com.flyng.kalculus.ingredient.grid.Grid2D
 import com.flyng.kalculus.ingredient.vector.Vector2D
 import com.flyng.kalculus.theme.ThemeMode
@@ -64,9 +65,16 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         .color(color.copy(alpha = 0.5f))
         .build()
 
+    private val seg = Segment2D.Builder()
+        .begin(0, 2)
+        .final(2, 0)
+        .width(0.5f)
+        .color(color)
+        .build()
+
     private val origin = Circle2D.Builder()
         .center(0, 0)
-        .radius(0.1f)
+        .radius(0.02f)
         .strokeWidth(0.1f)
         .color(color)
         .build()
@@ -101,6 +109,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
 
         vecId = core.render(vector2D)
         core.render(grid + origin)
+        core.render(seg)
     }
 
     private val animator = ValueAnimator.ofFloat(0.0f, 360.0f)
@@ -108,7 +117,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         if (!animator.isStarted) {
             animator.apply {
                 interpolator = LinearInterpolator()
-                duration = 6000
+                duration = 1000 * TIME_SCALE
                 repeatMode = ValueAnimator.RESTART
                 repeatCount = ValueAnimator.INFINITE
                 addUpdateListener { angle ->
@@ -139,5 +148,9 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return MainViewModel(context, owner, assetManager) as T
         }
+    }
+
+    companion object {
+        private const val TIME_SCALE = 4L
     }
 }

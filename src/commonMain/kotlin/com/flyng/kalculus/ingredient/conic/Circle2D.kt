@@ -25,7 +25,7 @@ class Circle2D private constructor(
     private val stroke: Float,
 ) : Visual {
 
-    private fun produceVertices(): List<Vec2D> {
+    private fun scan(): List<Vec2D> {
         val firstHalf = mutableListOf<Vec2D>()
         var theta = 0.0f
         while (theta < 2 * PI) {
@@ -98,7 +98,7 @@ class Circle2D private constructor(
         )
     )
 
-    override fun vertices() = produceVertices().map {
+    override fun vertices() = scan().map {
         Vertex(listOf(PositionAttribute(it.x, it.y, 0.0f)))
     }
 
