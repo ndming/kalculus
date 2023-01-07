@@ -8,9 +8,19 @@ actual interface Transformable {
     fun translate(
         stateful: Stateful,
         @Entity entity: Int,
-        transformManager: TransformManager,
+        transformer: TransformManager,
         moveX: Float,
         moveY: Float,
         moveZ: Float
+    )
+
+    fun rotate(
+        stateful: Stateful,
+        @Entity entity: Int,
+        transformer: TransformManager,
+        axisX: Float,
+        axisY: Float,
+        axisZ: Float,
+        angle: Float
     )
 }

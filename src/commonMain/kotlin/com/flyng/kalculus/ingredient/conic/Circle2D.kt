@@ -74,16 +74,12 @@ class Circle2D private constructor(
         /**
          * Sets the radius of the circle.
          */
-        fun radius(value: Float) = this.apply {
-            radius = value
-        }
+        fun radius(value: Float) = this.apply { radius = value }
 
         /**
          * Sets the [width] of the circle boundary.
          */
-        fun strokeWidth(width: Float) = this.apply {
-            stroke = width
-        }
+        fun strokeWidth(width: Float) = this.apply { stroke = width }
 
         override fun build(): Circle2D {
             if (radius < 0) {

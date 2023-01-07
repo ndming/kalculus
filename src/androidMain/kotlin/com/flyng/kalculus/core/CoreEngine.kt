@@ -9,9 +9,9 @@ import android.view.SurfaceView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import com.flyng.kalculus.adapter.VisualAdapter
 import com.flyng.kalculus.core.manager.*
 import com.flyng.kalculus.exposition.visual.Visual
-import com.flyng.kalculus.graphics.renderable.VisualHandler
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.google.android.filament.*
@@ -138,7 +138,7 @@ class CoreEngine(
     // Performs the rendering and schedules new frames
     private val frameScheduler = FrameCallback()
 
-    private val animationManager = AnimationManager()
+    val animationManager = AnimationManager()
 
     private val meshManager = MeshManager()
 
@@ -147,6 +147,9 @@ class CoreEngine(
     private val materialManager = MaterialManager(engine, assetManager)
 
     val cameraManager = CameraManager(camera, view, animationManager)
+
+    val transformer: TransformManager
+        get() = engine.transformManager
 
     init {
         setupView()
@@ -171,7 +174,7 @@ class CoreEngine(
     }
 
     fun render(visual: Visual): Int {
-        val mesh = VisualHandler.loadMesh(visual, engine, materialManager)
+        val mesh = VisualAdapter.loadMesh(visual, engine, materialManager)
         meshManager.add(mesh)
         scene.addEntity(mesh.entity)
         return mesh.entity

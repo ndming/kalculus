@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.compose.ui.graphics.colorspace.ColorSpace
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import com.flyng.kalculus.BuildConfig
-import com.flyng.kalculus.graphics.renderable.Renderable
+import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.google.android.filament.MaterialInstance
@@ -61,7 +61,7 @@ class ThemeManager(
     }
 
     /**
-     * Extracts the current theme color in suitable [ColorSpace] for [Renderable]'s base color.
+     * Extracts the current theme color in suitable [ColorSpace] for [Visual]'s base color.
      */
     fun baseColor() = if (mode == ThemeMode.Light) {
         profile.lightScheme.onPrimaryContainer.convert(baseColorSpace)

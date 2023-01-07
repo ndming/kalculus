@@ -3,11 +3,13 @@ package com.flyng.kalculus.core.manager
 import android.animation.AnimatorSet
 import android.animation.TypeEvaluator
 import android.animation.ValueAnimator
+import android.util.Log
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.animation.doOnEnd
 import com.google.android.filament.Camera
 import com.google.android.filament.View
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 /**
  * Responsible for manipulating the perspective to the render area.
@@ -48,12 +50,13 @@ class CameraManager(
     }
 
     fun reset() {
+        // only fire a snap amination when the previous one is done
         if (originSnap == null) {
-            val maxDepart = maxOf(
-                abs(currentZoom - 1.0f),
-                abs(currentOffsetX - 0.0f),
-                abs(currentOffsetY - 0.0f)
-            ).coerceIn(0.25f, 0.8f)
+            val depart = sqrt(currentOffsetX * currentOffsetX + currentOffsetY * currentOffsetY)
+            val expand = abs(currentZoom - 1.0f)
+            val maxDepart = maxOf(depart, expand).coerceIn(0.25f, 0.8f)
+
+
             val duration = (maxDepart * SNAP_ORIGIN_FACTOR).toLong()
 
             val zoomAnimator = ValueAnimator.ofFloat(currentZoom, 1.0f).apply {
@@ -80,17 +83,20 @@ class CameraManager(
 
             originSnap = AnimatorSet().apply {
                 play(zoomAnimator).with(offsetAnimator)
-                doOnEnd { originSnap = null }
+                doOnEnd { originSnap = null }   // reset the animator set when the animation done
             }
             animManager.submit(originSnap ?: return)
+            Log.d(TAG, "snap origin from depart=$depart | expand=$expand")
         }
     }
 
     companion object {
-        const val STANDARD_VIEW_PORT = 1.0
+        const val STANDARD_VIEW_PORT = 4.0
         private const val ZOOM_ENHACE_FACTOR = 1.0f
         private const val VERTICAL_ORIENTATION = -1.0f
         private const val SNAP_ORIGIN_FACTOR = 1500
+
+        private const val TAG = "CoreEngineCameraManager"
     }
 
     private data class Offset(val x: Float, val y: Float)

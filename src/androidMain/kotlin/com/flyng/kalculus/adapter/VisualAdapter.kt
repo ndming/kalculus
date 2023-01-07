@@ -1,4 +1,4 @@
-package com.flyng.kalculus.graphics.renderable
+package com.flyng.kalculus.adapter
 
 import com.flyng.kalculus.core.manager.MaterialManager
 import com.flyng.kalculus.exposition.visual.Visual
@@ -11,12 +11,13 @@ import com.flyng.kalculus.exposition.visual.vertex.ByteSize
 import com.flyng.kalculus.exposition.visual.vertex.ColorAttribute
 import com.flyng.kalculus.exposition.visual.vertex.PositionAttribute
 import com.flyng.kalculus.exposition.visual.vertex.Vertex
+import com.flyng.kalculus.graphics.renderable.Renderable
 import com.flyng.kalculus.graphics.renderable.mesh.Mesh
 import com.google.android.filament.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-actual object VisualHandler : Renderable {
+actual object VisualAdapter : Renderable {
     override fun loadMesh(
         visual: Visual,
         engine: Engine,

@@ -31,7 +31,7 @@ class Vector2D private constructor(
     private val normal: Vec2D
         get() = head - tail
 
-    private fun produceVertices(): List<Vec2D> {
+    private fun scan(): List<Vec2D> {
         // length and theta of a Vec2D are computed every time we query for their values,
         // so it's better to compute them once here
         val length = normal.length
@@ -59,6 +59,8 @@ class Vector2D private constructor(
 
         return listOf(point0, point1, point2, point3, point4, point5, point6)
     }
+
+    fun clone(color: Color = this.color) = Vector2D(head, tail, color)
 
     companion object {
         private const val SHAFT_HALF_THICKNESS_RATIO = 0.01f
@@ -100,7 +102,7 @@ class Vector2D private constructor(
         Primitive(Topology.TRIANGLES, 0, indices().size, DynamicColor(color)),
     )
 
-    override fun vertices() = produceVertices().map {
+    override fun vertices() = scan().map {
         Vertex(data = listOf(PositionAttribute(it.x, it.y, 0.0f)))
     }
 
