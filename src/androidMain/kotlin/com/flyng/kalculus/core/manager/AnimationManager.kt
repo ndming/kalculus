@@ -45,8 +45,10 @@ class AnimationManager {
      * fragment transitions to [Lifecycle.Event.ON_DESTROY].
      */
     fun cancel() {
-        // cancel an animator effectively triggers the onEnd callback
-        // so the animator gets removed from the animator list
-        animators.forEach { it.cancel() }
+        // remove listeners before canceling to prevent concurrent exception
+        animators.forEach {
+            it.removeAllListeners()
+            it.cancel()
+        }
     }
 }

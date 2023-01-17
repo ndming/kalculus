@@ -1,10 +1,9 @@
 package com.flyng.kalculus.core.manager
 
 import android.util.Log
-import androidx.compose.ui.graphics.colorspace.ColorSpace
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import com.flyng.kalculus.BuildConfig
-import com.flyng.kalculus.exposition.visual.Visual
+import com.flyng.kalculus.exposition.visual.primitive.ColorType
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.google.android.filament.MaterialInstance
@@ -33,7 +32,7 @@ class ThemeManager(
             scene.skybox?.let {
                 setSkyboxColor(it)
             }
-            setInstanceColor(meshManager.materialInstances)
+            setInstanceColor(meshManager.instances)
         }
     }
 
@@ -47,44 +46,47 @@ class ThemeManager(
             scene.skybox?.let {
                 setSkyboxColor(it)
             }
-            setInstanceColor(meshManager.materialInstances)
+            setInstanceColor(meshManager.instances)
         }
     }
 
-    /**
-     * Extracts the current theme color in suitable [ColorSpace] for [Skybox].
-     */
-    fun skyboxColor() = if (mode == ThemeMode.Light) {
-        profile.lightScheme.surface.convert(skyboxColorSpace)
-    } else {
-        profile.darkScheme.surface.convert(skyboxColorSpace)
+    fun colorFromType(type: ColorType, alpha: Float = 1.0f) = when (type) {
+        ColorType.BASE -> baseColor(alpha)
+        ColorType.SPOT -> spotColor(alpha)
+        ColorType.SKYBOX -> skyboxColor(alpha)
     }
 
-    /**
-     * Extracts the current theme color in suitable [ColorSpace] for [Visual]'s base color.
-     */
-    fun baseColor() = if (mode == ThemeMode.Light) {
-        profile.lightScheme.onPrimaryContainer.convert(baseColorSpace)
+    private fun skyboxColor(alpha: Float) = if (mode == ThemeMode.Light) {
+        profile.lightScheme.surface.convert(filamentColorSpace).copy(alpha = alpha)
     } else {
-        profile.darkScheme.onPrimaryContainer.convert(baseColorSpace)
+        profile.darkScheme.surface.convert(filamentColorSpace).copy(alpha = alpha)
     }
 
-    /**
-     * Uses the internal [profile] and [mode] to set the new skybox color.
-     */
+    private fun baseColor(alpha: Float) = if (mode == ThemeMode.Light) {
+        profile.lightScheme.primary.convert(filamentColorSpace).copy(alpha = alpha)
+    } else {
+        profile.darkScheme.primary.convert(filamentColorSpace).copy(alpha = alpha)
+    }
+
+    private fun spotColor(alpha: Float) = if (mode == ThemeMode.Light) {
+        profile.lightScheme.tertiary.convert(filamentColorSpace).copy(alpha = alpha)
+    } else {
+        profile.darkScheme.tertiary.convert(filamentColorSpace).copy(alpha = alpha)
+    }
+
     private fun setSkyboxColor(skybox: Skybox) {
-        val color = skyboxColor()
-        skybox.setColor(color.red, color.green, color.blue, color.alpha)
+        val (red, green, blue, alpha) = skyboxColor(1.0f)
+        skybox.setColor(red, green, blue, alpha)
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "skybox color change: (${color.red}, ${color.green}, ${color.blue}, ${color.alpha})")
+            Log.d(TAG, "skybox color change: (${red}, ${green}, ${blue}, ${alpha})")
         }
     }
 
-    private fun setInstanceColor(instances: List<MaterialInstance>) {
-        val color = baseColor()
-        instances.forEach { instance ->
+    private fun setInstanceColor(instances: List<Pair<MaterialInstance, ColorType>>) {
+        instances.forEach { (instance, type) ->
+            val (red, green, blue) = colorFromType(type)
             if (instance.material.hasParameter("rgb")) {
-                instance.setParameter("rgb", color.red, color.green, color.blue)
+                instance.setParameter("rgb", red, green, blue)
             }
         }
     }
@@ -92,7 +94,6 @@ class ThemeManager(
     companion object {
         private const val TAG = "CoreEngineThemeManager"
 
-        private val baseColorSpace = ColorSpaces.LinearSrgb
-        private val skyboxColorSpace = ColorSpaces.CieXyz
+        private val filamentColorSpace = ColorSpaces.LinearSrgb
     }
 }

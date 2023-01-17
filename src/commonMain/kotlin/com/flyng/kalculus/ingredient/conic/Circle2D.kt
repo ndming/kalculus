@@ -2,7 +2,7 @@ package com.flyng.kalculus.ingredient.conic
 
 import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.exposition.visual.boundary.Boundary
-import com.flyng.kalculus.exposition.visual.primitive.Color
+import com.flyng.kalculus.exposition.visual.primitive.ColorType
 import com.flyng.kalculus.exposition.visual.primitive.DynamicColor
 import com.flyng.kalculus.exposition.visual.primitive.Primitive
 import com.flyng.kalculus.exposition.visual.primitive.Topology
@@ -21,8 +21,9 @@ import kotlin.math.sin
 class Circle2D private constructor(
     private val center: Vec2D,
     private val radius: Float,
-    private val color: Color,
     private val stroke: Float,
+    private val color: ColorType,
+    private val alpha: Float,
 ) : Visual {
 
     private fun scan(): List<Vec2D> {
@@ -85,7 +86,7 @@ class Circle2D private constructor(
             if (radius < 0) {
                 throw RuntimeException("Negative radius is disallowed: $radius")
             }
-            return Circle2D(center, radius, color, if (stroke < 0) 0.0f else stroke)
+            return Circle2D(center, radius, if (stroke < 0) 0.0f else stroke, type, alpha)
         }
     }
 
@@ -94,7 +95,7 @@ class Circle2D private constructor(
             topology = if (stroke == 0.0f) Topology.LINE_STRIP else Topology.TRIANGLE_STRIP,
             offset = 0,
             count = indices().size,
-            material = DynamicColor(color)
+            material = DynamicColor(color, alpha)
         )
     )
 

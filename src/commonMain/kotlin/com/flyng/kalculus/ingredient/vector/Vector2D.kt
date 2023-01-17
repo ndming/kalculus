@@ -3,7 +3,7 @@ package com.flyng.kalculus.ingredient.vector
 import com.flyng.kalculus.exposition.stateful.Stateful
 import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.exposition.visual.boundary.Boundary
-import com.flyng.kalculus.exposition.visual.primitive.Color
+import com.flyng.kalculus.exposition.visual.primitive.ColorType
 import com.flyng.kalculus.exposition.visual.primitive.DynamicColor
 import com.flyng.kalculus.exposition.visual.primitive.Primitive
 import com.flyng.kalculus.exposition.visual.primitive.Topology
@@ -15,8 +15,6 @@ import com.flyng.kalculus.foundation.algebra.linear.Vec2D
 import com.flyng.kalculus.foundation.algebra.linear.minus
 import com.flyng.kalculus.ingredient.IngredientBuilder
 import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * Represents an arrow-like 2D vector. The ingredient requires a [head] and a [tail] coordinate in world space to define
@@ -26,7 +24,8 @@ import kotlin.math.sin
 class Vector2D private constructor(
     private val head: Vec2D,
     private val tail: Vec2D,
-    private val color: Color,
+    private val color: ColorType,
+    private val alpha: Float
 ) : Visual, Stateful {
     private val originalHead = Vec2D(head.x, head.y)
     private val originalTail = Vec2D(tail.x, tail.y)
@@ -62,9 +61,9 @@ class Vector2D private constructor(
         return listOf(point0, point1, point2, point3, point4, point5, point6)
     }
 
-    fun clone(color: Color = this.color) = Vector2D(head, tail, color)
+    fun head() = head.x to head.y
 
-    fun tip() = head.x to head.y
+    fun length() = normal.length
 
     companion object {
         private const val SHAFT_HALF_THICKNESS_RATIO = 0.01f
@@ -99,11 +98,11 @@ class Vector2D private constructor(
         /**
          * Constructs a new [Vector2D].
          */
-        override fun build() = Vector2D(head, tail, color)
+        override fun build() = Vector2D(head, tail, type, alpha)
     }
 
     override fun primitives() = listOf(
-        Primitive(Topology.TRIANGLES, 0, indices().size, DynamicColor(color)),
+        Primitive(Topology.TRIANGLES, 0, indices().size, DynamicColor(color, alpha)),
     )
 
     override fun vertices() = scan().map {
@@ -113,14 +112,12 @@ class Vector2D private constructor(
     override fun indices() = shortArrayOf(0, 6, 1, 1, 6, 5, 2, 4, 3)
 
     override fun boundary(): Boundary {
-        val length = normal.length
-        val theta = normal.theta
         return Boundary(
-            centerX = (tail.x + head.x) / 2,
-            centerY = (tail.y + head.y) / 2,
+            centerX = tail.x,    // should be (tail.x + head.x) / 2
+            centerY = tail.y,    // should be (tail.y + head.y) / 2
             centerZ = 0.0f,
-            halfExtentX = length / 2 * cos(theta),
-            halfExtentY = length / 2 * sin(theta),
+            halfExtentX = 0.01f, // should be length / 2 * cos(theta) of the normal
+            halfExtentY = 0.01f, // should be length / 2 * sin(theta) of the normal
             halfExtentZ = 0.01f
         )
     }

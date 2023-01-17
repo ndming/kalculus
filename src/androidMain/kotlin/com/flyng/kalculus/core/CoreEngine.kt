@@ -12,6 +12,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.flyng.kalculus.adapter.VisualAdapter
 import com.flyng.kalculus.core.manager.*
 import com.flyng.kalculus.exposition.visual.Visual
+import com.flyng.kalculus.exposition.visual.primitive.ColorType
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 import com.google.android.filament.*
@@ -160,7 +161,7 @@ class CoreEngine(
      */
     private fun setupView() {
         // Set up skybox
-        val color = themeManager.skyboxColor()
+        val color = themeManager.colorFromType(ColorType.SKYBOX)
         // Skybox in short is the background environment of the rendering space
         scene.skybox = Skybox.Builder().color(
             color.red, color.green, color.blue, color.alpha
@@ -174,7 +175,7 @@ class CoreEngine(
     }
 
     fun render(visual: Visual): Int {
-        val mesh = VisualAdapter.loadMesh(visual, engine, materialManager)
+        val mesh = VisualAdapter.loadMesh(visual, engine, materialManager, themeManager)
         meshManager.add(mesh)
         scene.addEntity(mesh.entity)
         return mesh.entity
@@ -205,10 +206,11 @@ class CoreEngine(
             engine.destroyEntity(entity)
             engine.destroyVertexBuffer(vertexBuffer)
             engine.destroyIndexBuffer(indexBuffer)
-            instances.forEach { instance ->
+            instances.forEach { (instance, _) ->
                 engine.destroyMaterialInstance(instance)
             }
             EntityManager.get().destroy(entity)
+            meshManager.remove(entity)
         }
     }
 
@@ -231,7 +233,7 @@ class CoreEngine(
             engine.destroyEntity(entity)
             engine.destroyVertexBuffer(vertexBuffer)
             engine.destroyIndexBuffer(indexBuffer)
-            materials.forEach { instance ->
+            materials.forEach { (instance, _) ->
                 engine.destroyMaterialInstance(instance)
             }
         }

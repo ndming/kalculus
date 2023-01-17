@@ -25,10 +25,7 @@ class MainActivity : ComponentActivity() {
                 profile = vm.profile.observeAsState(ThemeProfile.Firewater).value,
                 themeMode = vm.mode.observeAsState(ThemeMode.Light).value
             ) {
-                KalculusScreen(
-                    surfaceView = vm.core.surfaceView,
-                    vm = vm
-                ) { vm.work() }
+                KalculusScreen(surfaceView = vm.core.surfaceView, vm = vm)
             }
         }
     }

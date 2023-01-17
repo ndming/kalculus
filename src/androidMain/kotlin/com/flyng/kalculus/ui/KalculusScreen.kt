@@ -1,25 +1,26 @@
 package com.flyng.kalculus.ui
 
+import android.animation.ValueAnimator
 import android.view.SurfaceView
+import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.animation.doOnEnd
 import com.flyng.kalculus.MainViewModel
-import com.flyng.kalculus.foundation.algebra.linear.round
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
 
@@ -28,7 +29,6 @@ fun KalculusScreen(
     surfaceView: SurfaceView,
     modifier: Modifier = Modifier,
     vm: MainViewModel,
-    onDrawVector: () -> Unit,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         AndroidView(
@@ -37,7 +37,7 @@ fun KalculusScreen(
                 .align(Alignment.Center)
                 .pointerInput(Unit) {
                     detectTransformGestures(panZoomLock = true) { _, pan, zoom, _ ->
-                        vm.core.cameraManager.zoom(zoom)
+                        vm.core.cameraManager.zoom(zoom, !vm.follow)
                         vm.core.cameraManager.shift(pan.x, pan.y)
                     }
                     detectTapGestures(onDoubleTap = { vm.core.cameraManager.reset() })
@@ -51,62 +51,212 @@ fun KalculusScreen(
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.End
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                FilledIconButton(
-                    onClick = {
-                        val update = if (vm.profile.value == ThemeProfile.Firewater) {
-                            ThemeProfile.Naturalist
-                        } else {
-                            ThemeProfile.Firewater
-                        }
-                        vm.onProfileChange(update)
-                    }
+            var slideable by remember { mutableStateOf(true) }
+            var visible by remember { mutableStateOf(true) }
+
+            val visibleDuration = 600
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                val mode by vm.mode.observeAsState(ThemeMode.Light)
+                val profile by vm.profile.observeAsState(ThemeProfile.Firewater)
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(tween(visibleDuration)) + slideInHorizontally(tween(visibleDuration)),
+                    exit = fadeOut(tween(visibleDuration)) + slideOutHorizontally(tween(visibleDuration))
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Face,
-                        contentDescription = null,
-                    )
+                    Column {
+                        IconButton(
+                            modifier = Modifier.padding(8.dp).padding(top = 8.dp),
+                            onClick = {
+                                val update = if (vm.mode.value == ThemeMode.Light) {
+                                    ThemeMode.Dark
+                                } else {
+                                    ThemeMode.Light
+                                }
+                                vm.onThemeModeChange(update)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (mode == ThemeMode.Light) {
+                                    Icons.Default.DarkMode
+                                } else {
+                                    Icons.Default.LightMode
+                                },
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        IconButton(
+                            modifier = Modifier.padding(8.dp),
+                            onClick = {
+                                val update = if (vm.profile.value == ThemeProfile.Firewater) {
+                                    ThemeProfile.Naturalist
+                                } else {
+                                    ThemeProfile.Firewater
+                                }
+                                vm.onProfileChange(update)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (profile == ThemeProfile.Firewater) {
+                                    Icons.Default.Forest
+                                } else {
+                                    Icons.Default.LocalFireDepartment
+                                },
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        IconButton(
+                            modifier = Modifier.padding(8.dp),
+                            onClick = vm::toggleCamera
+                        ) {
+                            Icon(
+                                imageVector = if (vm.follow) Icons.Default.GpsOff else Icons.Default.GpsFixed,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        IconButton(
+                            modifier = Modifier.padding(8.dp),
+                            onClick = {
+                                if (vm.durationScale != 1.0f) {
+                                    slideable = false
+                                    val anim = ValueAnimator.ofFloat(vm.durationScale, 1.0f).apply {
+                                        duration = 1000
+                                        interpolator = AccelerateDecelerateInterpolator()
+                                        repeatCount = 0
+                                        addUpdateListener { vm.setSpeed(it.animatedValue as Float) }
+                                        doOnEnd {
+                                            vm.applySpeed()
+                                            slideable = true
+                                        }
+                                    }
+                                    vm.core.animationManager.submit(anim)
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Speed,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
                 }
-                FilledIconButton(
-                    onClick = {
-                        val update = if (vm.mode.value == ThemeMode.Light) {
-                            ThemeMode.Dark
-                        } else {
-                            ThemeMode.Light
-                        }
-                        vm.onThemeModeChange(update)
-                    }
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(tween(visibleDuration)) + slideInVertically(tween(visibleDuration)),
+                    exit = fadeOut(tween(visibleDuration)) + slideOutVertically(tween(visibleDuration))
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                    )
+                    Row {
+                        Button(
+                            modifier = Modifier.padding(16.dp),
+                            onClick = {},
+                            colors = ButtonDefaults
+                                .buttonColors(containerColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                        ) {
+                            Text("SVG")
+                        }
+                    }
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        IconButton(
+                            modifier = Modifier.padding(top = 16.dp, end = 16.dp, start = 16.dp),
+                            onClick = { visible = !visible }
+                        ) {
+                            Icon(
+                                imageVector = if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(tween(visibleDuration)) + slideInHorizontally(tween(visibleDuration)) { it / 2 },
+                        exit = fadeOut(tween(visibleDuration)) + slideOutHorizontally(tween(visibleDuration)) { it / 2 }
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            FilledIconButton(
+                                modifier = Modifier.padding(16.dp),
+                                onClick = vm::addArrow,
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropUp,
+                                    contentDescription = null,
+                                )
+                            }
+                            Text(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                text = "${vm.arrows}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            FilledIconButton(
+                                modifier = Modifier.padding(16.dp),
+                                onClick = vm::dropArrow,
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(tween(visibleDuration)) + slideInVertically(tween(visibleDuration)) { it / 2 },
+                exit = fadeOut(tween(visibleDuration)) + slideOutVertically(tween(visibleDuration)) { it / 2 }
             ) {
-                FilledIconButton(
-                    onClick = vm.core.cameraManager::reset
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.ThumbUp,
-                        contentDescription = null,
-                    )
-                }
-                Text(text = "(${vm.coordX.round(2)}, ${vm.coordY.round(2)})")
-                FilledIconButton(
-                    onClick = onDrawVector
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = null,
+                    FilledIconButton(
+                        modifier = Modifier.padding(16.dp),
+                        onClick = vm::animate,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (vm.playing) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = null,
+                        )
+                    }
+                    Slider(
+                        modifier = Modifier.padding(start = 16.dp, end = 32.dp),
+                        value = vm.durationScale,
+                        valueRange = 0.25f..4.0f,
+                        onValueChange = vm::setSpeed,
+                        onValueChangeFinished = vm::applySpeed,
+                        enabled = slideable,
+                        colors = SliderDefaults.colors(
+                            inactiveTrackColor = MaterialTheme.colorScheme.inversePrimary,
+                            activeTrackColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            thumbColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
                     )
                 }
             }

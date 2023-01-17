@@ -19,6 +19,8 @@ class CameraManager(
     private val view: View,
     private val animManager: AnimationManager
 ) {
+    val zoom: Float
+        get() = currentZoom
     private var currentZoom = 1.0f
     private var currentOffsetX = 0.0f
     private var currentOffsetY = 0.0f
@@ -45,6 +47,22 @@ class CameraManager(
 
         currentOffsetX += x / view.viewport.width
         currentOffsetY += VERTICAL_ORIENTATION * y / view.viewport.height
+
+        camera.setShift(currentOffsetX.toDouble(), currentOffsetY.toDouble())
+    }
+
+    fun centerAt(x: Float, y: Float) {
+        originSnap?.cancel()
+
+        if (view.viewport.height > view.viewport.width) {
+            val ratio = view.viewport.height.toFloat() / view.viewport.width.toFloat()
+            currentOffsetX = (-x / STANDARD_VIEW_PORT / 2 * currentZoom).toFloat()
+            currentOffsetY = (-y / STANDARD_VIEW_PORT / ratio / 2 * currentZoom).toFloat()
+        } else {
+            val ratio = view.viewport.width.toFloat() / view.viewport.height.toFloat()
+            currentOffsetX = (-x / STANDARD_VIEW_PORT / ratio / 2 * currentZoom).toFloat()
+            currentOffsetY = (-y / STANDARD_VIEW_PORT / 2 * currentZoom).toFloat()
+        }
 
         camera.setShift(currentOffsetX.toDouble(), currentOffsetY.toDouble())
     }
@@ -91,7 +109,7 @@ class CameraManager(
     }
 
     companion object {
-        const val STANDARD_VIEW_PORT = 4.0
+        const val STANDARD_VIEW_PORT = 8.0
         private const val ZOOM_ENHACE_FACTOR = 1.0f
         private const val VERTICAL_ORIENTATION = -1.0f
         private const val SNAP_ORIGIN_FACTOR = 1500

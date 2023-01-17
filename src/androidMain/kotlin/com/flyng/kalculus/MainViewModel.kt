@@ -9,16 +9,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.animation.doOnEnd
 import androidx.lifecycle.*
-import com.flyng.kalculus.adapter.StatefulAdapter
 import com.flyng.kalculus.core.CoreEngine
-import com.flyng.kalculus.exposition.visual.primitive.Color
+import com.flyng.kalculus.core.manager.CameraManager
+import com.flyng.kalculus.exposition.visual.primitive.ColorType
+import com.flyng.kalculus.foundation.calculus.FourierSeries
 import com.flyng.kalculus.ingredient.conic.Circle2D
 import com.flyng.kalculus.ingredient.curve.Segment2D
 import com.flyng.kalculus.ingredient.grid.Grid2D
-import com.flyng.kalculus.ingredient.vector.Vector2D
+import com.flyng.kalculus.io.SvgLoader
+import com.flyng.kalculus.io.SvgSampler
+import com.flyng.kalculus.model.FourierSeriesModel
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
-import kotlinx.coroutines.launch
+import kotlin.math.atan2
+import kotlin.math.sqrt
 
 class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: AssetManager) : ViewModel() {
     val profile: LiveData<ThemeProfile>
@@ -53,29 +57,9 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         initialMode = mode.value ?: ThemeMode.Light
     )
 
-    private val color = core.themeManager.baseColor().let {
-        Color(it.red, it.green, it.blue, it.alpha)
-    }
-
-    private val vector2D = Vector2D.Builder()
-        .head(1, 0)
-        .color(color)
-        .build()
-
-    private val vecId: Int
-
-    private val grid = Grid2D.Builder()
-        .center(0, 0)
-        .spacing(1.0f)
-        .color(color.copy(alpha = 0.5f))
-        .build()
-
-    private val origin = Circle2D.Builder()
-        .center(0, 0)
-        .radius(0.02f)
-        .strokeWidth(0.1f)
-        .color(color)
-        .build()
+    private val fsModel = FourierSeriesModel(core)
+    private val samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(assetManager, "samples/vietnam.svg"))
+    private val normalDuration = 1000 * samples.size / (SvgSampler.SAMPLING_FACTOR * 10)
 
     init {
         // bind the core to the owner's lifecycle
@@ -105,42 +89,61 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
             }
         })
 
-        vecId = core.render(vector2D)
-        core.render(grid + origin)
+        val grid = Grid2D.Builder()
+            .center(0, 0)
+            .spacing(1.0f)
+            .color(ColorType.BASE, 0.25f)
+            .build()
+
+        val origin = Circle2D.Builder()
+            .center(0, 0)
+            .radius(0.02f)
+            .strokeWidth(0.1f)
+            .build()
+
+        val axisX = Segment2D.Builder()
+            .begin(-100, 0)
+            .final(100, 0)
+            .build()
+
+        val axisY = Segment2D.Builder()
+            .begin(0, -100)
+            .final(0, 100)
+            .build()
+
+        core.render(grid + origin + axisX + axisY)
     }
 
-    private val animator = ValueAnimator.ofFloat(0.0f, 360.0f)
 
-    var coordX: Float by mutableStateOf(1.0f)
+    var arrows by mutableStateOf(0)
         private set
-    var coordY: Float by mutableStateOf(0.0f)
+    var playing by mutableStateOf(false)
+        private set
+    var durationScale by mutableStateOf(1.0f)
+        private set
+    var follow by mutableStateOf(false)
         private set
 
-    private fun animate() {
-        if (!animator.isStarted) {
-            animator.apply {
-                interpolator = LinearInterpolator()
-                duration = 1000 * TIME_SCALE
-                repeatMode = ValueAnimator.RESTART
-                repeatCount = ValueAnimator.INFINITE
-                addUpdateListener { angle ->
-                    StatefulAdapter.rotate(
-                        vector2D, vecId, core.transformer,
-                        0.0f, 0.0f, 1.0f, angle.animatedValue as Float
-                    )
-                    val (x, y) = vector2D.tip()
+    private var coordX = 0.0f
+    private var coordY = 0.0f
 
-                    viewModelScope.launch { createSegment(x, y) }
+    private var makeSegment = true
 
-                    coordX = x
-                    coordY = y
-                }
+    private val animator: ValueAnimator = ValueAnimator.ofFloat(0.0f, 1.0f).apply {
+        interpolator = LinearInterpolator()
+        duration = (normalDuration / durationScale).toLong()
+        repeatMode = ValueAnimator.RESTART
+        repeatCount = ValueAnimator.INFINITE
+        addUpdateListener {
+            val (x, y) = fsModel.transition(it.animatedValue as Float)
+            if (makeSegment) {
+                createSegment(x, y)
             }
-            core.animationManager.submit(animator)
-        } else if (!animator.isPaused) {
-            animator.pause()
-        } else {
-            animator.resume()
+            coordX = x
+            coordY = y
+            if (follow) {
+                core.cameraManager.centerAt(x, y)
+            }
         }
     }
 
@@ -148,17 +151,17 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         val seg = Segment2D.Builder()
             .begin(coordX, coordY)
             .final(x, y)
-            .width(0.04f)
-            .color(color)
+            .width(SEGMENT_SCALE_FACTOR * CameraManager.STANDARD_VIEW_PORT.toFloat() / core.cameraManager.zoom)
+            .color(ColorType.SPOT)
             .build()
         val id = core.render(seg)
-        core.meshManager[id]?.materials?.let { instances ->
+        core.meshManager[id]?.instances?.let { instances ->
             val alphaAnimator = ValueAnimator.ofFloat(1.0f, 0.0f).apply {
                 interpolator = LinearInterpolator()
-                duration = 1000 * TIME_SCALE
+                duration = (normalDuration / durationScale).toLong()
                 repeatCount = 0
                 addUpdateListener { alpha ->
-                    instances.forEach { instance ->
+                    instances.forEach { (instance, _) ->
                         if (instance.material.hasParameter("alpha")) {
                             instance.setParameter("alpha", alpha.animatedValue as Float)
                         }
@@ -170,8 +173,59 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         }
     }
 
-    fun work() {
-        animate()
+    fun addArrow() {
+        animator.pause()
+
+        val n = if (arrows % 2 == 0) arrows / 2 else -(arrows + 1) / 2
+        val (nx, ny) = FourierSeries.fromSamplesAt(samples, n)
+
+        val length = sqrt(nx * nx + ny * ny)
+        val theta = atan2(ny, nx)
+
+        fsModel.transition(0.0f)
+        fsModel.attach(length, theta)
+        fsModel.transition(animator.animatedValue as Float)
+
+        arrows += 1
+
+        if (animator.isPaused && playing) animator.resume()
+    }
+
+    fun dropArrow() {
+        if (arrows > 0) {
+            fsModel.drop()
+            arrows -= 1
+        }
+    }
+
+    fun animate() {
+        playing = if (!animator.isStarted) {
+            core.animationManager.submit(animator)
+            true
+        } else if (!animator.isPaused) {
+            animator.pause()
+            false
+        } else {
+            animator.resume()
+            true
+        }
+    }
+
+    fun setSpeed(factor: Float) {
+        makeSegment = false
+        durationScale = factor
+        animator.duration = (normalDuration / durationScale).toLong()
+    }
+
+    fun applySpeed() {
+        makeSegment = true
+    }
+
+    fun toggleCamera() {
+        follow = !follow
+        if (!follow) {
+            core.cameraManager.reset()
+        }
     }
 
     class Factory(
@@ -186,6 +240,6 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
     }
 
     companion object {
-        private const val TIME_SCALE = 5L
+        private const val SEGMENT_SCALE_FACTOR = 0.02f
     }
 }

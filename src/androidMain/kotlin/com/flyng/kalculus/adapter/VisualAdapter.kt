@@ -1,12 +1,10 @@
 package com.flyng.kalculus.adapter
 
 import com.flyng.kalculus.core.manager.MaterialManager
+import com.flyng.kalculus.core.manager.ThemeManager
 import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.exposition.visual.boundary.Boundary
-import com.flyng.kalculus.exposition.visual.primitive.DynamicColor
-import com.flyng.kalculus.exposition.visual.primitive.PlainColor
-import com.flyng.kalculus.exposition.visual.primitive.Primitive
-import com.flyng.kalculus.exposition.visual.primitive.Topology
+import com.flyng.kalculus.exposition.visual.primitive.*
 import com.flyng.kalculus.exposition.visual.vertex.ByteSize
 import com.flyng.kalculus.exposition.visual.vertex.ColorAttribute
 import com.flyng.kalculus.exposition.visual.vertex.PositionAttribute
@@ -22,6 +20,7 @@ actual object VisualAdapter : Renderable {
         visual: Visual,
         engine: Engine,
         materialManager: MaterialManager,
+        themeManager: ThemeManager
     ): Mesh {
         // create and load vertex buffer
         val vertexBuffer = loadVertexBuffer(visual.vertices(), engine)
@@ -36,6 +35,7 @@ actual object VisualAdapter : Renderable {
             vertexBuffer,
             indexBuffer,
             materialManager,
+            themeManager
         )
     }
 
@@ -150,6 +150,7 @@ actual object VisualAdapter : Renderable {
         vertexBuffer: VertexBuffer,
         indexBuffer: IndexBuffer,
         materialManager: MaterialManager,
+        themeManager: ThemeManager
     ): Mesh {
         val primitiveCount = primitives.size
 
@@ -162,7 +163,7 @@ actual object VisualAdapter : Renderable {
         }
 
         // Store all material instances of the renderable
-        val materials = mutableListOf<MaterialInstance>()
+        val instances = mutableListOf<Pair<MaterialInstance, ColorType>>()
 
         // We then create a renderable component on that entity
         // A renderable is made of several primitives
@@ -188,16 +189,16 @@ actual object VisualAdapter : Renderable {
                         index,
                         materialManager[material].let { filamat ->
                             when (material) {
-                                is PlainColor -> filamat.defaultInstance.also { materials.add(it) }
+                                is PlainColor -> filamat.defaultInstance.also { instances.add(it to ColorType.BASE) }
                                 is DynamicColor -> {
                                     filamat.createInstance().apply {
-                                        with(material.baseColor) {
-                                            // color must be in linear SRGB
-                                            setParameter("rgb", red, green, blue)
-                                            // alpha will be pre-multiplied by the GPU
-                                            setParameter("alpha", alpha)
-                                        }
-                                        materials.add(this)
+                                        val (red, green, blue, alpha) = themeManager
+                                            .colorFromType(material.colorType, material.alpha)
+                                        // color must be in linear SRGB
+                                        setParameter("rgb", red, green, blue)
+                                        // alpha will be pre-multiplied by the GPU
+                                        setParameter("alpha", alpha)
+                                        instances.add(this to material.colorType)
                                     }
                                 }
                             }
@@ -207,6 +208,6 @@ actual object VisualAdapter : Renderable {
             }
             .build(engine, entity)
 
-        return Mesh(entity, indexBuffer, vertexBuffer, box, materials)
+        return Mesh(entity, indexBuffer, vertexBuffer, box, instances)
     }
 }

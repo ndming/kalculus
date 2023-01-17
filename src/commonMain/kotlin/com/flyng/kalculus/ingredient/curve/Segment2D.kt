@@ -2,7 +2,7 @@ package com.flyng.kalculus.ingredient.curve
 
 import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.exposition.visual.boundary.Boundary
-import com.flyng.kalculus.exposition.visual.primitive.Color
+import com.flyng.kalculus.exposition.visual.primitive.ColorType
 import com.flyng.kalculus.exposition.visual.primitive.DynamicColor
 import com.flyng.kalculus.exposition.visual.primitive.Primitive
 import com.flyng.kalculus.exposition.visual.primitive.Topology
@@ -14,14 +14,12 @@ import com.flyng.kalculus.foundation.algebra.linear.Vec2D
 import com.flyng.kalculus.foundation.algebra.linear.minus
 import com.flyng.kalculus.ingredient.IngredientBuilder
 import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 class Segment2D private constructor(
     private val begin: Vec2D,
     private val final: Vec2D,
     private val width: Float,
-    private val color: Color,
+    private val color: ColorType,
 ) : Visual {
 
     private fun scan(): List<Vec2D> {
@@ -66,7 +64,7 @@ class Segment2D private constructor(
             if (width < 0) {
                 throw RuntimeException("Negative width is disallowed: $width")
             }
-            return Segment2D(begin, final, width, color)
+            return Segment2D(begin, final, width, type)
         }
     }
 
@@ -81,15 +79,12 @@ class Segment2D private constructor(
     override fun indices() = ShortArray(if (width > 0.0f) 4 else 2) { it.toShort() }
 
     override fun boundary(): Boundary {
-        val normal = final - begin
-        val length = normal.length
-        val theta = normal.theta
         return Boundary(
             centerX = (final.x + begin.x) / 2,
             centerY = (final.y + begin.y) / 2,
             centerZ = 0.0f,
-            halfExtentX = length / 2 * cos(theta),
-            halfExtentY = length / 2 * sin(theta),
+            halfExtentX = 0.01f,  // should be length / 2 * cos(theta) of the normal vector
+            halfExtentY = 0.01f,  // should be length / 2 * sin(theta) of the normal vector
             halfExtentZ = 0.01f
         )
     }

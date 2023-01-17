@@ -23,4 +23,13 @@ actual interface Transformable {
         axisZ: Float,
         angle: Float
     )
+
+    fun offsetRotateXY(
+        stateful: Stateful,
+        @Entity entity: Int,
+        transformer: TransformManager,
+        angle: Float,
+        offsetX: Float = 0.0f,
+        offsetY: Float = 0.0f
+    )
 }

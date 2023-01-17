@@ -2,7 +2,7 @@ package com.flyng.kalculus.ingredient.grid
 
 import com.flyng.kalculus.exposition.visual.Visual
 import com.flyng.kalculus.exposition.visual.boundary.Boundary
-import com.flyng.kalculus.exposition.visual.primitive.Color
+import com.flyng.kalculus.exposition.visual.primitive.ColorType
 import com.flyng.kalculus.exposition.visual.primitive.DynamicColor
 import com.flyng.kalculus.exposition.visual.primitive.Primitive
 import com.flyng.kalculus.exposition.visual.primitive.Topology
@@ -18,7 +18,8 @@ import com.flyng.kalculus.ingredient.IngredientBuilder
 class Grid2D private constructor(
     private val center: Vec2D,
     private val spacing: Float,
-    private val color: Color
+    private val color: ColorType,
+    private val alpha: Float,
 ) : Visual {
 
     private fun produceVertices(): List<Vec2D> {
@@ -64,12 +65,12 @@ class Grid2D private constructor(
             if (spacing < 0) {
                 throw RuntimeException("Negative spacing is disallowed: $spacing")
             }
-            return Grid2D(center, spacing, color)
+            return Grid2D(center, spacing, type, alpha)
         }
 
     }
 
-    override fun primitives() = listOf(Primitive(Topology.LINES, 0, INDICES, DynamicColor(color)))
+    override fun primitives() = listOf(Primitive(Topology.LINES, 0, INDICES, DynamicColor(color, alpha)))
 
     override fun vertices() = produceVertices().map { Vertex(listOf(PositionAttribute(it.x, it.y, 0.0f))) }
 

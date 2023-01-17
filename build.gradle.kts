@@ -56,7 +56,20 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 // androidx
-                implementation(libs.bundles.androidx)
+                implementation(libs.androidx.core.ktx)
+                // Integration with activities
+                implementation(libs.androidx.activity.compose)
+                // Integration with activities
+                implementation(libs.androidx.activity.compose)
+
+                // Material Design 3
+                implementation(libs.androidx.compose.material3)
+                // Preview support
+                implementation(libs.androidx.compose.ui.preview)
+                // Integration with livedata
+                implementation(libs.androidx.compose.runtime.livedata)
+                // Full set of material icons
+                implementation(libs.androidx.compose.material.icons)
 
                 // filament
                 implementation(libs.google.filament.android)
@@ -127,6 +140,7 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 
