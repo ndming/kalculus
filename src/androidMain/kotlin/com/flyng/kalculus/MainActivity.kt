@@ -16,9 +16,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val vm: MainViewModel by viewModels(
-            factoryProducer = { MainViewModel.Factory(this, this, assets) }
-        )
+        val vm: MainViewModel by viewModels(factoryProducer = { MainViewModel.Factory(this, this) })
 
         setContent {
             KalculusTheme(

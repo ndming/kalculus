@@ -21,7 +21,7 @@ import kotlin.math.PI
  * itself. It also accepts an optional [color] for specifying the initial appearance.
  * @see Vector2D.Builder
  */
-class Vector2D private constructor(
+internal class Vector2D private constructor(
     private val head: Vec2D,
     private val tail: Vec2D,
     private val color: ColorType,

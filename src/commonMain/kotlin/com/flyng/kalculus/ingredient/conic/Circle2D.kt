@@ -57,7 +57,7 @@ class Circle2D private constructor(
     /**
      * Builder class for [Circle2D].
      */
-    class Builder : IngredientBuilder<Circle2D>() {
+    internal class Builder : IngredientBuilder<Circle2D>() {
         private val center = Vec2D(0, 0)
 
         private var radius = 1.0f

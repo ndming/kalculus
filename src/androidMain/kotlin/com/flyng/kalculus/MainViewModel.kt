@@ -21,10 +21,12 @@ import com.flyng.kalculus.io.SvgSampler
 import com.flyng.kalculus.model.FourierSeriesModel
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: AssetManager) : ViewModel() {
+class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
     val profile: LiveData<ThemeProfile>
         get() = _profile
 
@@ -32,10 +34,9 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         MutableLiveData(ThemeProfile.Firewater)
     }
 
-    fun onProfileChange(value: ThemeProfile) {
-        if (value != _profile.value) {
-            _profile.postValue(value)
-        }
+    fun onProfileToggle() {
+        val update = if (profile.value == ThemeProfile.Firewater) ThemeProfile.Naturalist else ThemeProfile.Firewater
+        _profile.postValue(update)
     }
 
     val mode: LiveData<ThemeMode>
@@ -45,21 +46,38 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         MutableLiveData<ThemeMode>(ThemeMode.Light)
     }
 
-    fun onThemeModeChange(value: ThemeMode) {
-        if (value != _mode.value) {
-            _mode.postValue(value)
-        }
+    fun onModeToggle() {
+        val update = if (mode.value == ThemeMode.Light) ThemeMode.Dark else ThemeMode.Light
+        _mode.postValue(update)
     }
 
-    val core = CoreEngine(
-        context, assetManager,
-        initialProfile = profile.value ?: ThemeProfile.Firewater,
-        initialMode = mode.value ?: ThemeMode.Light
-    )
+    val core = CoreEngine(context,profile.value ?: ThemeProfile.Firewater,mode.value ?: ThemeMode.Light)
+
+    private var currentBundle = 0
+    private val bundles = context.assets.list("bundles")!!
 
     private val fsModel = FourierSeriesModel(core)
-    private val samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(assetManager, "samples/vietnam.svg"))
-    private val normalDuration = 1000 * samples.size / (SvgSampler.SAMPLING_FACTOR * 10)
+    private var samples = listOf<Pair<Float, Float>>()
+
+    private var baseDuration = 1000 * samples.size.toFloat() / (SvgSampler.SAMPLING_FACTOR * 10)
+
+    private val cachedArrows = mutableListOf<Pair<Float, Float>>()
+
+    var arrows by mutableStateOf(0)
+        private set
+    var playing by mutableStateOf(false)
+        private set
+    var durationScale by mutableStateOf(1.0f)
+        private set
+    var following by mutableStateOf(false)
+        private set
+    var caching by mutableStateOf(false)
+        private set
+
+    private var px = 0.0f
+    private var py = 0.0f
+
+    private var tracing = true
 
     init {
         // bind the core to the owner's lifecycle
@@ -114,51 +132,34 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         core.render(grid + origin + axisX + axisY)
     }
 
-
-    var arrows by mutableStateOf(0)
-        private set
-    var playing by mutableStateOf(false)
-        private set
-    var durationScale by mutableStateOf(1.0f)
-        private set
-    var follow by mutableStateOf(false)
-        private set
-
-    private var coordX = 0.0f
-    private var coordY = 0.0f
-
-    private var makeSegment = true
-
     private val animator: ValueAnimator = ValueAnimator.ofFloat(0.0f, 1.0f).apply {
         interpolator = LinearInterpolator()
-        duration = (normalDuration / durationScale).toLong()
+        duration = (baseDuration / durationScale).toLong()
         repeatMode = ValueAnimator.RESTART
         repeatCount = ValueAnimator.INFINITE
         addUpdateListener {
             val (x, y) = fsModel.transition(it.animatedValue as Float)
-            if (makeSegment) {
-                createSegment(x, y)
-            }
-            coordX = x
-            coordY = y
-            if (follow) {
-                core.cameraManager.centerAt(x, y)
-            }
+            val dist = sqrt((x - px) * (x - px) + (y - py) * (y - py))
+            if (tracing && dist < CUTOFF_DISTANCE) { trace(x, y) }
+            px = x
+            py = y
+            if (following) { core.cameraManager.centerAt(x, y) }
         }
     }
 
-    private fun createSegment(x: Float, y: Float) {
+    private fun trace(x: Float, y: Float) {
         val seg = Segment2D.Builder()
-            .begin(coordX, coordY)
+            .begin(px, py)
             .final(x, y)
             .width(SEGMENT_SCALE_FACTOR * CameraManager.STANDARD_VIEW_PORT.toFloat() / core.cameraManager.zoom)
             .color(ColorType.SPOT)
             .build()
         val id = core.render(seg)
+
         core.meshManager[id]?.instances?.let { instances ->
             val alphaAnimator = ValueAnimator.ofFloat(1.0f, 0.0f).apply {
                 interpolator = LinearInterpolator()
-                duration = (normalDuration / durationScale).toLong()
+                duration = (baseDuration / durationScale).toLong()
                 repeatCount = 0
                 addUpdateListener { alpha ->
                     instances.forEach { (instance, _) ->
@@ -173,18 +174,42 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         }
     }
 
+    private fun cache() {
+        caching = true
+        if (cachedArrows.isNotEmpty()) { cachedArrows.clear() }
+        repeat(CACHE_SIZE) { idx ->
+            val n = if (idx % 2 == 0) idx / 2 else -(idx + 1) / 2
+            cachedArrows.add(FourierSeries.fromSamplesAt(samples, n))
+        }
+        caching = false
+    }
+
+    fun launch(context: Context) {
+        viewModelScope.launch(Dispatchers.Default) {
+            samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(context.assets, "bundles/${bundles[currentBundle]}"))
+            baseDuration = 1000 * samples.size.toFloat() / (SvgSampler.SAMPLING_FACTOR * 10)
+            animator.duration = (baseDuration / durationScale).toLong()
+            cache()
+        }
+    }
+
     fun addArrow() {
         animator.pause()
 
-        val n = if (arrows % 2 == 0) arrows / 2 else -(arrows + 1) / 2
-        val (nx, ny) = FourierSeries.fromSamplesAt(samples, n)
+        val (nx, ny) = if (arrows < CACHE_SIZE && !caching) {
+            cachedArrows[arrows]
+        } else {
+            val n = if (arrows % 2 == 0) arrows / 2 else -(arrows + 1) / 2
+            FourierSeries.fromSamplesAt(samples, n)
+        }
 
         val length = sqrt(nx * nx + ny * ny)
         val theta = atan2(ny, nx)
 
         fsModel.transition(0.0f)
         fsModel.attach(length, theta)
-        fsModel.transition(animator.animatedValue as Float)
+        val (x, y) = fsModel.transition(animator.animatedValue as Float)
+        if (following) { core.cameraManager.centerAt(x, y) }
 
         arrows += 1
 
@@ -198,7 +223,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
         }
     }
 
-    fun animate() {
+    fun togglePlaying() {
         playing = if (!animator.isStarted) {
             core.animationManager.submit(animator)
             true
@@ -212,34 +237,58 @@ class MainViewModel(context: Context, owner: LifecycleOwner, assetManager: Asset
     }
 
     fun setSpeed(factor: Float) {
-        makeSegment = false
+        tracing = false
         durationScale = factor
-        animator.duration = (normalDuration / durationScale).toLong()
+        animator.duration = (baseDuration / durationScale).toLong()
     }
 
-    fun applySpeed() {
-        makeSegment = true
-    }
+    fun applySpeed() { tracing = true }
 
     fun toggleCamera() {
-        follow = !follow
-        if (!follow) {
+        following = !following
+        if (!following) {
             core.cameraManager.reset()
+        }
+    }
+
+    fun applySampleChange(index: Int, assets: AssetManager) {
+        if (index != currentBundle) {
+            animator.cancel()
+            currentBundle = index
+            cachedArrows.clear()
+            caching = false
+            arrows = 0
+            playing = false
+            durationScale = 1.0f
+            following = false
+            px = 0.0f
+            py = 0.0f
+            tracing = true
+            animator.currentPlayTime = 0
+
+            viewModelScope.launch(Dispatchers.Default) {
+                fsModel.clear()
+                samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(assets, "bundles/${bundles[currentBundle]}"))
+                baseDuration = 1000 * samples.size.toFloat() / (SvgSampler.SAMPLING_FACTOR * 10)
+                animator.duration = (baseDuration / durationScale).toLong()
+                cache()
+            }
         }
     }
 
     class Factory(
         private val context: Context,
         private val owner: LifecycleOwner,
-        private val assetManager: AssetManager,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MainViewModel(context, owner, assetManager) as T
+            return MainViewModel(context, owner) as T
         }
     }
 
     companion object {
-        private const val SEGMENT_SCALE_FACTOR = 0.02f
+        private const val SEGMENT_SCALE_FACTOR = 0.015f
+        private const val CUTOFF_DISTANCE = 1.0f
+        private const val CACHE_SIZE = 500
     }
 }

@@ -29,7 +29,7 @@ class FilledSquare2D private constructor(
         return listOf(p0, p1, p2, p3)
     }
 
-    class Builder : IngredientBuilder<FilledSquare2D>() {
+    internal class Builder : IngredientBuilder<FilledSquare2D>() {
         private val center = Vec2D(0, 0)
 
         private var halfExtent = 1.0f

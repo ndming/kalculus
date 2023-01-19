@@ -35,6 +35,12 @@ class FourierSeriesModel(private val core: CoreEngine) {
         core.destroy(arrow.entity)
     }
 
+    fun clear() {
+        val entities = arrows.map { it.entity }
+        arrows.clear()
+        entities.forEach { core.destroy(it) }
+    }
+
     fun transition(fraction: Float): Pair<Float, Float> {
         var prevX = 0.0f
         var prevY = 0.0f

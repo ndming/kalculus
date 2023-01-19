@@ -41,7 +41,7 @@ class Segment2D private constructor(
         }
     }
 
-    class Builder : IngredientBuilder<Segment2D>() {
+    internal class Builder : IngredientBuilder<Segment2D>() {
         private val begin = Vec2D(0, 0)
 
         private val final = Vec2D(0, 0)

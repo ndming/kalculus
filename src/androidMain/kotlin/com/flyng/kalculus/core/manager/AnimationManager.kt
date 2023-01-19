@@ -7,10 +7,10 @@ import com.flyng.kalculus.core.CoreEngine
 
 /**
  * The [CoreEngine] uses this class to conveniently manage the [Animator]s under a lifecycle-aware maner when the host
- * activity for fragment changes lifecyle event.
+ * activity for fragment changes lifecycle event.
  */
 class AnimationManager {
-    private val animators = mutableListOf<Animator>()
+    private val animators = mutableListOf<AnimatorPack>()
 
     /**
      * Puts the [animator] under lifecycle-aware management and starts it. When the animator ends either implicitly or
@@ -18,26 +18,30 @@ class AnimationManager {
      */
     fun submit(animator: Animator) {
         animator.apply {
-            doOnEnd { animators.remove(it) }
+            val pack = AnimatorPack(this)
+            doOnEnd { animators.remove(pack) }
             if (!isStarted) start()
-            animators.add(this)
+            animators.add(pack)
         }
     }
 
     /**
-     * Resumes all previously paused animators, should be called when the host activiy or fragment transitions to
+     * Resumes all previously paused animators, should be called when the host activity or fragment transitions to
      * [Lifecycle.Event.ON_RESUME].
      */
     fun resume() {
-        animators.forEach { if (it.isPaused) it.resume() }
+        animators.forEach { (animator, wasRunning) -> if (wasRunning) animator.resume() }
     }
 
     /**
-     * Pauses all the ongoing animators, should be called when the host activiy or fragment transitions to
+     * Pauses all the ongoing animators, should be called when the host activity or fragment transitions to
      * [Lifecycle.Event.ON_PAUSE] to prevent infinite-duration and/or expensive animations from exhausting performance.
      */
     fun pause() {
-        animators.forEach { it.pause() }
+        animators.forEach { pack ->
+            pack.wasRunning = pack.animator.isRunning
+            pack.animator.pause()
+        }
     }
 
     /**
@@ -46,9 +50,11 @@ class AnimationManager {
      */
     fun cancel() {
         // remove listeners before canceling to prevent concurrent exception
-        animators.forEach {
-            it.removeAllListeners()
-            it.cancel()
+        animators.forEach { (animator, _) ->
+            animator.removeAllListeners()
+            animator.cancel()
         }
     }
+
+    private data class AnimatorPack(val animator: Animator, var wasRunning: Boolean = true)
 }

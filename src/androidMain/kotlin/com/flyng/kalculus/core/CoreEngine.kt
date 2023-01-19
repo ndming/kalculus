@@ -1,7 +1,6 @@
 package com.flyng.kalculus.core
 
 import android.content.Context
-import android.content.res.AssetManager
 import android.util.Log
 import android.view.Choreographer
 import android.view.Surface
@@ -24,7 +23,7 @@ import com.google.android.filament.android.UiHelper.ContextErrorPolicy
  * The core rendering engine, backed by [Filament]. The core should be created when the owner activity or fragment into
  * which graphics is rendered enters [Lifecycle.State.CREATED] state. By itself, the engine is a [LifecycleEventObserver]
  * that can observe the host activity/fragment's [Lifecycle]. When creating the engine, the host should add the core to
- * its lifecycle's observers so that the core can automatically react to the lifecycle of the host.
+ * its lifecycle observers so that the core can automatically react to the lifecycle of the host.
  *
  * Example usage:
  *
@@ -83,15 +82,13 @@ import com.google.android.filament.android.UiHelper.ContextErrorPolicy
  * ```
  *
  * @param context the [Context] where the produced [SurfaceView] should be created.
- * @param assetManager the [AssetManager] provided by the activity or fragment.
- * @param initialProfile the initial [ThemeProfile] to which the core engine will enter.
- * @param initialMode the initial [ThemeMode] to which the core engine will enter.
+ * @param profile the initial [ThemeProfile] to which the core engine will enter, defaults to [ThemeProfile.Firewater].
+ * @param mode the initial [ThemeMode] to which the core engine will enter, defaults to [ThemeMode.Light].
  */
 class CoreEngine(
     context: Context,
-    assetManager: AssetManager,
-    initialProfile: ThemeProfile = ThemeProfile.Firewater,
-    initialMode: ThemeMode = ThemeMode.Light,
+    profile: ThemeProfile = ThemeProfile.Firewater,
+    mode: ThemeMode = ThemeMode.Light
 ) : LifecycleEventObserver {
     /**
      * The rendering engine creates and holds a [SurfaceView] into which content of the scene is rendered. This view
@@ -143,9 +140,9 @@ class CoreEngine(
 
     val meshManager = MeshManager()
 
-    val themeManager = ThemeManager(scene, meshManager, initialProfile, initialMode)
+    val themeManager = ThemeManager(scene, meshManager, profile, mode)
 
-    private val materialManager = MaterialManager(engine, assetManager)
+    private val materialManager = MaterialManager(engine, context.assets)
 
     val cameraManager = CameraManager(camera, view, animationManager)
 
@@ -206,9 +203,7 @@ class CoreEngine(
             engine.destroyEntity(entity)
             engine.destroyVertexBuffer(vertexBuffer)
             engine.destroyIndexBuffer(indexBuffer)
-            instances.forEach { (instance, _) ->
-                engine.destroyMaterialInstance(instance)
-            }
+            instances.forEach { (instance, _) -> engine.destroyMaterialInstance(instance) }
             EntityManager.get().destroy(entity)
             meshManager.remove(entity)
         }

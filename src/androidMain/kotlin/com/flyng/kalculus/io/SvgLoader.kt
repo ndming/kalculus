@@ -1,18 +1,61 @@
 package com.flyng.kalculus.io
 
 import android.content.res.AssetManager
+import android.content.res.Resources
+import androidx.annotation.RawRes
 import javax.xml.parsers.DocumentBuilderFactory
 
 object SvgLoader {
-    fun fromAssets(am: AssetManager, file: String) = am.open(file).use {
-        val factory = DocumentBuilderFactory.newInstance()
-        val builder = factory.newDocumentBuilder()
-        val doc = builder.parse(it)
+    fun fromAssets(assets: AssetManager, file: String) = assets.open(file).use {
+        val document = builder.parse(it)
 
-        val width = doc.documentElement.getAttribute("width").toFloat()
-        val height = doc.documentElement.getAttribute("height").toFloat()
-        val path = doc.getElementsByTagName("path").item(0).attributes.getNamedItem("d").nodeValue
+        val dimens = document
+            .getElementsByTagName("svg")
+            .item(0)
+            .attributes
+            .getNamedItem("viewBox")
+            .nodeValue.split(" ")
+
+        val width  = dimens[2].toFloat()
+        val height = dimens[3].toFloat()
+
+        val path = document
+            .getElementsByTagName("path")
+            .item(0)
+            .attributes
+            .getNamedItem("d")
+            .nodeValue
 
         SvgData(width, height, path)
     }
+
+    fun fromResources(res: Resources, @RawRes id: Int) = res.openRawResource(id).use {
+        val document = builder.parse(it)
+
+        val vectorAttrs = document
+            .getElementsByTagName("vector")
+            .item(0)
+            .attributes
+
+        val width = vectorAttrs
+            .getNamedItem("android:viewportWidth")
+            .nodeValue
+            .toFloat()
+
+        val height = vectorAttrs
+            .getNamedItem("android:viewportHeight")
+            .nodeValue.toFloat()
+
+        val path = document
+            .getElementsByTagName("path")
+            .item(0)
+            .attributes
+            .getNamedItem("android:pathData")
+            .nodeValue
+
+        SvgData(width, height, path)
+
+    }
+
+    private val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 }

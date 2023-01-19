@@ -47,7 +47,7 @@ class Grid2D private constructor(
         private const val INDICES = LINES_EXTENT * 8 + 4
     }
 
-    class Builder : IngredientBuilder<Grid2D>() {
+    internal class Builder : IngredientBuilder<Grid2D>() {
         private val center = Vec2D(0, 0)
 
         private var spacing = 1.0f

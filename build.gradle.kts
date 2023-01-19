@@ -59,11 +59,12 @@ kotlin {
                 implementation(libs.androidx.core.ktx)
                 // Integration with activities
                 implementation(libs.androidx.activity.compose)
-                // Integration with activities
-                implementation(libs.androidx.activity.compose)
+                // Integration with ViewModels
+                implementation(libs.androidx.viewmodel.compose)
 
-                // Material Design 3
+                // Material Design 3 and 2
                 implementation(libs.androidx.compose.material3)
+                implementation(libs.androidx.compose.material)
                 // Preview support
                 implementation(libs.androidx.compose.ui.preview)
                 // Integration with livedata
@@ -73,6 +74,10 @@ kotlin {
 
                 // filament
                 implementation(libs.google.filament.android)
+
+                // coil
+                implementation(libs.coil.svg)
+                implementation(libs.coil.compose)
             }
         }
 
