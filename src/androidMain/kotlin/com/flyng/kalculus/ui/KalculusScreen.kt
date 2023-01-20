@@ -27,7 +27,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -46,9 +45,6 @@ import kotlinx.coroutines.launch
 ) {
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) { vm.launch(context) }
 
     ModalBottomSheetLayout(
         sheetState = sheetState,
@@ -175,6 +171,7 @@ import kotlinx.coroutines.launch
                                         )
                                     }
                                 },
+                                enabled = !vm.caching,
                                 colors = ButtonDefaults
                                     .buttonColors(containerColor = MaterialTheme.colorScheme.onPrimaryContainer)
                             ) {

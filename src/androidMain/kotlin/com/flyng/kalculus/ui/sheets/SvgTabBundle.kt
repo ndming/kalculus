@@ -95,6 +95,7 @@ fun SvgTabBundle(
                         modifier = Modifier.fillMaxWidth(0.6f),
                         text = bundles[index]
                             .substringAfter('_')
+                            .replace('-', ' ')
                             .removeSuffix(".svg")
                             .replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.titleLarge,

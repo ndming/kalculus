@@ -119,9 +119,19 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
+    signingConfigs {
+        register("release") {
+            storeFile = file("${rootDir}/src/androidMain/release.keystore")
+            storePassword = "1475963Kalculus#"
+            keyAlias = "release-key"
+            keyPassword = "1475963Kalculus#"
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            signingConfig = signingConfigs["release"]
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
         getByName("debug") {

@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnResume
 import androidx.lifecycle.*
 import com.flyng.kalculus.core.CoreEngine
 import com.flyng.kalculus.core.manager.CameraManager
@@ -21,8 +22,6 @@ import com.flyng.kalculus.io.SvgSampler
 import com.flyng.kalculus.model.FourierSeriesModel
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -53,15 +52,13 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
 
     val core = CoreEngine(context,profile.value ?: ThemeProfile.Firewater,mode.value ?: ThemeMode.Light)
 
-    private var currentBundle = 0
     private val bundles = context.assets.list("bundles")!!
+    private var currentBundle = 0
 
     private val fsModel = FourierSeriesModel(core)
-    private var samples = listOf<Pair<Float, Float>>()
+    private var samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(context.assets, "bundles/${bundles[currentBundle]}"))
 
     private var baseDuration = 1000 * samples.size.toFloat() / (SvgSampler.SAMPLING_FACTOR * 10)
-
-    private val cachedArrows = mutableListOf<Pair<Float, Float>>()
 
     var arrows by mutableStateOf(0)
         private set
@@ -145,6 +142,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
             py = y
             if (following) { core.cameraManager.centerAt(x, y) }
         }
+        doOnResume { playing = true }
     }
 
     private fun trace(x: Float, y: Float) {
@@ -174,34 +172,11 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
         }
     }
 
-    private fun cache() {
-        caching = true
-        if (cachedArrows.isNotEmpty()) { cachedArrows.clear() }
-        repeat(CACHE_SIZE) { idx ->
-            val n = if (idx % 2 == 0) idx / 2 else -(idx + 1) / 2
-            cachedArrows.add(FourierSeries.fromSamplesAt(samples, n))
-        }
-        caching = false
-    }
-
-    fun launch(context: Context) {
-        viewModelScope.launch(Dispatchers.Default) {
-            samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(context.assets, "bundles/${bundles[currentBundle]}"))
-            baseDuration = 1000 * samples.size.toFloat() / (SvgSampler.SAMPLING_FACTOR * 10)
-            animator.duration = (baseDuration / durationScale).toLong()
-            cache()
-        }
-    }
-
     fun addArrow() {
         animator.pause()
 
-        val (nx, ny) = if (arrows < CACHE_SIZE && !caching) {
-            cachedArrows[arrows]
-        } else {
-            val n = if (arrows % 2 == 0) arrows / 2 else -(arrows + 1) / 2
-            FourierSeries.fromSamplesAt(samples, n)
-        }
+        val n = if (arrows % 2 == 0) arrows / 2 else -(arrows + 1) / 2
+        val (nx, ny) = FourierSeries.fromSamplesAt(samples, n)
 
         val length = sqrt(nx * nx + ny * ny)
         val theta = atan2(ny, nx)
@@ -255,8 +230,9 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
         if (index != currentBundle) {
             animator.cancel()
             currentBundle = index
-            cachedArrows.clear()
-            caching = false
+            fsModel.clear()
+            samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(assets, "bundles/${bundles[currentBundle]}"))
+            baseDuration = 1000 * samples.size.toFloat() / (SvgSampler.SAMPLING_FACTOR * 10)
             arrows = 0
             playing = false
             durationScale = 1.0f
@@ -265,14 +241,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
             py = 0.0f
             tracing = true
             animator.currentPlayTime = 0
-
-            viewModelScope.launch(Dispatchers.Default) {
-                fsModel.clear()
-                samples = SvgSampler.fromSvgData(SvgLoader.fromAssets(assets, "bundles/${bundles[currentBundle]}"))
-                baseDuration = 1000 * samples.size.toFloat() / (SvgSampler.SAMPLING_FACTOR * 10)
-                animator.duration = (baseDuration / durationScale).toLong()
-                cache()
-            }
+            animator.duration = (baseDuration / durationScale).toLong()
         }
     }
 
@@ -289,6 +258,5 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
     companion object {
         private const val SEGMENT_SCALE_FACTOR = 0.015f
         private const val CUTOFF_DISTANCE = 1.0f
-        private const val CACHE_SIZE = 500
     }
 }
