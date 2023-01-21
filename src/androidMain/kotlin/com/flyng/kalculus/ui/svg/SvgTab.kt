@@ -1,4 +1,4 @@
-package com.flyng.kalculus.ui.sheets
+package com.flyng.kalculus.ui.svg
 
 enum class SvgTab {
     BUNDLE, CUSTOM

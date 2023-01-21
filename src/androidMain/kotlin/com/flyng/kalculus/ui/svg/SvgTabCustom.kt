@@ -1,4 +1,4 @@
-package com.flyng.kalculus.ui.sheets
+package com.flyng.kalculus.ui.svg
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

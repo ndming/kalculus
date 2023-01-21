@@ -10,7 +10,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -34,7 +37,7 @@ import androidx.core.animation.doOnEnd
 import com.flyng.kalculus.MainViewModel
 import com.flyng.kalculus.theme.ThemeMode
 import com.flyng.kalculus.theme.ThemeProfile
-import com.flyng.kalculus.ui.sheets.SvgSheet
+import com.flyng.kalculus.ui.svg.SvgSheet
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
@@ -263,7 +266,7 @@ import kotlinx.coroutines.launch
                         ) {
                             AnimatedContent(vm.caching) { caching ->
                                 if (caching) {
-                                    androidx.compose.material3.CircularProgressIndicator()
+                                    CircularProgressIndicator()
                                 } else {
                                     Icon(
                                         imageVector = if (vm.playing) Icons.Default.Pause else Icons.Default.PlayArrow,

@@ -157,7 +157,11 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
         core.meshManager[id]?.instances?.let { instances ->
             val alphaAnimator = ValueAnimator.ofFloat(1.0f, 0.0f).apply {
                 interpolator = LinearInterpolator()
-                duration = (baseDuration / durationScale).toLong()
+                duration = if (mode.value == ThemeMode.Dark) {
+                    (baseDuration / durationScale).toLong()
+                } else {    // padding on light mode due to different contrast effect
+                    (baseDuration / durationScale).toLong() + SEGMENT_TIME_PADDING
+                }
                 repeatCount = 0
                 addUpdateListener { alpha ->
                     instances.forEach { (instance, _) ->
@@ -257,6 +261,7 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
 
     companion object {
         private const val SEGMENT_SCALE_FACTOR = 0.015f
+        private const val SEGMENT_TIME_PADDING = 2000L
         private const val CUTOFF_DISTANCE = 1.0f
     }
 }

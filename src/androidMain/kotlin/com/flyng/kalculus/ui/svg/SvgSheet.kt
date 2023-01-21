@@ -1,15 +1,19 @@
-package com.flyng.kalculus.ui.sheets
+package com.flyng.kalculus.ui.svg
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 private const val SHEET_HEIGHT_FRACTION = 0.9f
 
@@ -19,6 +23,17 @@ private const val SHEET_HEIGHT_FRACTION = 0.9f
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(SvgTab.BUNDLE) }
+
+    val scope = rememberCoroutineScope()
+
+    BackHandler {
+        scope.launch {
+            sheetState.animateTo(
+                ModalBottomSheetValue.Hidden,
+                tween(durationMillis = 400)
+            )
+        }
+    }
 
     Surface {
         Column(modifier = modifier.fillMaxWidth()) {

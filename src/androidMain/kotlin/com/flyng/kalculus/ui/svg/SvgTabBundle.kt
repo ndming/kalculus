@@ -1,4 +1,4 @@
-package com.flyng.kalculus.ui.sheets
+package com.flyng.kalculus.ui.svg
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -70,7 +70,7 @@ fun SvgTabBundle(
                             .build(),
                         contentDescription = bundles[index],
                         alignment = Alignment.Center,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
                     )
                 }
             }
@@ -157,7 +157,7 @@ fun SvgTabBundle(
                         scope.launch {
                             sheetState.animateTo(
                                 ModalBottomSheetValue.Hidden,
-                                tween(durationMillis = 600)
+                                tween(durationMillis = 400)
                             )
                         }
                     }
