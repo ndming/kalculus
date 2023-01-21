@@ -150,41 +150,23 @@ fun SvgTabBundle(
                     )
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(
-                    modifier = Modifier.padding(vertical = verticalPadding, horizontal = 8.dp),
-                    onClick = {
-                        scope.launch {
-                            sheetState.animateTo(
-                                ModalBottomSheetValue.Hidden,
-                                tween(durationMillis = 400)
-                            )
-                        }
+            Button(
+                modifier = Modifier.padding(vertical = verticalPadding, horizontal = 8.dp),
+                onClick = {
+                    scope.launch {
+                        sheetState.animateTo(
+                            ModalBottomSheetValue.Hidden,
+                            tween(durationMillis = 600)
+                        )
                     }
-                ) {
-                    Text(
-                        text = "Cancel",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    vm.applySampleChange(bundleIndex, context.assets)
                 }
-                Button(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    onClick = {
-                        scope.launch {
-                            sheetState.animateTo(
-                                ModalBottomSheetValue.Hidden,
-                                tween(durationMillis = 600)
-                            )
-                        }
-                        vm.applySampleChange(bundleIndex, context.assets)
-                    }
-                ) {
-                    Text(
-                        modifier = Modifier.padding(bottom = 2.dp),
-                        text = "Apply",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+            ) {
+                Text(
+                    modifier = Modifier.padding(bottom = 2.dp),
+                    text = "Apply",
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
     }

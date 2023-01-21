@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.flyng.${project.name}"
-version = "0.0.0"
+version = "0.1.1"
 
 repositories {
     google()
@@ -110,7 +110,7 @@ android {
         applicationId = project.group as String
         minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
-        versionCode = 1
+        versionCode = (project.version as String).filter { it != '.' }.toInt()
         versionName = project.version as String
     }
 

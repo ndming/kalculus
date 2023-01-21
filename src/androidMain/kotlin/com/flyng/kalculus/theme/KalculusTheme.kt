@@ -35,8 +35,11 @@ fun KalculusTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.surfaceVariant.toArgb()
+            window.navigationBarColor = colorScheme.surfaceVariant.toArgb()
             WindowCompat.setDecorFitsSystemWindows(window, true)
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isLight
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = isLight
+            controller.isAppearanceLightNavigationBars = isLight
         }
     }
 
