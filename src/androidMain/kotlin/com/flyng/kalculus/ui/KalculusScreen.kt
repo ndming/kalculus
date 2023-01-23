@@ -61,7 +61,7 @@ import kotlinx.coroutines.launch
                     .align(Alignment.Center)
                     .pointerInput(Unit) {
                         detectTransformGestures(panZoomLock = true) { _, pan, zoom, _ ->
-                            vm.core.cameraManager.zoom(zoom, !vm.following)
+                            vm.core.cameraManager.zoom(zoom)
                             vm.core.cameraManager.shift(pan.x, pan.y)
                         }
                         detectTapGestures(onDoubleTap = { vm.core.cameraManager.reset() })
