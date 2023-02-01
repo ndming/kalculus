@@ -262,6 +262,6 @@ class MainViewModel(context: Context, owner: LifecycleOwner) : ViewModel() {
     companion object {
         private const val SEGMENT_SCALE_FACTOR = 0.015f
         private const val SEGMENT_TIME_PADDING = 2000L
-        private const val CUTOFF_DISTANCE = 1.0f
+        private const val CUTOFF_DISTANCE = 0.1f
     }
 }
