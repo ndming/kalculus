@@ -50,11 +50,12 @@ import kotlinx.coroutines.launch
     val scope = rememberCoroutineScope()
 
     ModalBottomSheetLayout(
+        modifier = modifier,
         sheetState = sheetState,
         sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
         sheetContent = { SvgSheet(sheetState) }
     ) {
-        Box(modifier = modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             AndroidView(
                 modifier = Modifier
                     .fillMaxSize()

@@ -1,9 +1,8 @@
 package com.flyng.kalculus
 
-import org.jetbrains.compose.web.renderComposable
+import com.flyng.kalculus.core.CoreEngine
+import com.flyng.kalculus.kotlinext.filament.init
 
 fun main() {
-    renderComposable(rootElementId = "root") {
-
-    }
+    init(arrayOf("plain_color.filamat")) { CoreEngine() }
 }

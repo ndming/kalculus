@@ -1,3 +1,5 @@
+import com.android.aaptcompiler.resolvePackage
+
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -46,6 +48,17 @@ kotlin {
 
                 // filament
                 implementation(npm("filament", "=${libs.versions.filament.get()}"))
+                implementation(npm("path-browserify", "=1.0.1"))
+                implementation(npm("fs-extra", "=11.1.0"))
+                implementation(npm("crypto-browserify", "=3.12.0"))
+                implementation(npm("stream-browserify", "=3.0.0"))
+                implementation(npm("buffer", "=6.0.3"))
+                implementation(npm("util", "=0.12.5"))
+                implementation(npm("assert", "=2.0.0"))
+                implementation(npm("constants-browserify", "=1.0.0"))
+
+                // gl-matrix
+                implementation(npm("gl-matrix", "=2.8.1"))
             }
         }
 
